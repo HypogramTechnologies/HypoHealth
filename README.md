@@ -139,7 +139,7 @@ docker-compose up -d
 | **Adson Ottoni Balbino Filho** | Developer |
 | **Andressa Stephane Toledo da Silva** | Developer |
 | **Carlos Eduardo da Silva Magalhães** | Developer |
-| **Eduardo Henrique Alves Arantes** | Developer |
+| **Eduardo Henrique Alves Arantes** | Scrum Master / Developer |
 | **João Pedro Souza dos Anjos** | Product Owner / Developer |
 
 ---

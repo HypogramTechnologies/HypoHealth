@@ -1,0 +1,87 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum TipoAgendamento {
+  HORARIO_FIXO
+  INTERVALO
+  DIAS_ESPECIFICOS
+}
+
+model Dispositivo {
+  id             String           @id @default(uuid()) @db.Uuid
+  nome           String?          @db.VarChar(100)
+  numero_serie   String           @unique @db.VarChar(100)
+  criado_em      DateTime         @default(now())
+  compartimentos Compartimento[]
+
+  @@map("dispositivos")
+}
+
+model Compartimento {
+  id             String         @id @default(uuid()) @db.Uuid
+  dispositivo_id String         @db.Uuid
+  posicao        Int
+  descricao      String?        @db.VarChar(100)
+  
+  dispositivo    Dispositivo    @relation(fields: [dispositivo_id], references: [id], onDelete: Cascade)
+  medicamentos   Medicamento[]
+
+  @@map("compartimentos")
+}
+
+model Medicamento {
+  id               String         @id @default(uuid()) @db.Uuid
+  nome             String         @db.VarChar(150)
+  dosagem          String         @db.VarChar(50)
+  compartimento_id String         @db.Uuid
+  criado_em        DateTime       @default(now())
+
+  compartimento    Compartimento  @relation(fields: [compartimento_id], references: [id], onDelete: Cascade)
+  agendamentos     Agendamento[]
+
+  @@map("medicamentos")
+}
+
+model Agendamento {
+  id             String           @id @default(uuid()) @db.Uuid
+  medicamento_id String           @db.Uuid
+  tipo           TipoAgendamento
+  data_inicio    DateTime
+  data_fim       DateTime?
+  intervalo_horas Int?
+  criado_em      DateTime         @default(now())
+
+  medicamento    Medicamento      @relation(fields: [medicamento_id], references: [id], onDelete: Cascade)
+  horarios       AgendamentoHorario[]
+  dias           AgendamentoDia[]
+
+  @@index([medicamento_id])
+  @@map("agendamentos")
+}
+
+model AgendamentoHorario {
+  id             String      @id @default(uuid()) @db.Uuid
+  agendamento_id String      @db.Uuid
+  horario        DateTime    @db.Time
+
+  agendamento    Agendamento @relation(fields: [agendamento_id], references: [id], onDelete: Cascade)
+
+  @@index([agendamento_id])
+  @@map("agendamento_horarios")
+}
+
+model AgendamentoDia {
+  id             String      @id @default(uuid()) @db.Uuid
+  agendamento_id String      @db.Uuid
+  dia_semana     Int
+
+  agendamento    Agendamento @relation(fields: [agendamento_id], references: [id], onDelete: Cascade)
+
+  @@index([agendamento_id])
+  @@map("agendamento_dias")
+}

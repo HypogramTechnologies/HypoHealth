@@ -7,9 +7,6 @@ export default [
     files: ["src/**/*.ts"],
     languageOptions: {
       parser: tsParser,
-      globals: {
-        ...globals.node,
-      },
     },
     plugins: {
       "@typescript-eslint": tsPlugin,

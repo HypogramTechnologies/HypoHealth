@@ -64,7 +64,7 @@ O **HypoHealth** resolve esses desafios através de um ecossistema integrado:
 
 ```bash
 # Clone este repositório
-git clone https://github.com/seu-repo/HypoHealth.git
+git clone https://github.com/HypogramTechnologies/HypoHealth.git
 
 # Acesse a pasta do backend
 cd HypoHealth/backend

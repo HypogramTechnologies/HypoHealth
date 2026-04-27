@@ -27,6 +27,7 @@ export class MedicamentoController {
       const medicamentos = await prisma.medicamento.findMany();
       return res.status(200).json(medicamentos);
     } catch (error) {
+      console.error(error);
       return res.status(500).json({ erro: "Erro ao buscar medicamentos." });
     }
   }
@@ -44,6 +45,7 @@ export class MedicamentoController {
 
       return res.status(200).json(medicamento);
     } catch (error) {
+      console.error(error);
       return res.status(500).json({ erro: "Erro ao buscar medicamento." });
     }
   }
@@ -64,6 +66,7 @@ export class MedicamentoController {
 
       return res.status(200).json(medicamentoAtualizado);
     } catch (error) {
+      console.error(error);
       return res.status(500).json({
         erro: "Erro ao atualizar medicamento. Verifique se o ID existe.",
       });
@@ -78,6 +81,7 @@ export class MedicamentoController {
       });
       return res.status(204).send();
     } catch (error) {
+      console.error(error);
       return res.status(500).json({ erro: "Erro ao deletar medicamento." });
     }
   }

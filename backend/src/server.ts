@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import prisma from "./database/db";
 import routes from "./routes/index";
+import { connectMqtt } from "./services/mqttService";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -14,6 +15,9 @@ app.use("/api", routes);
 const start = async () => {
   try {
     await prisma.$connect();
+
+    connectMqtt();
+
     app.listen(PORT, () => {
       console.log(` Servidor rodando em http://localhost:${PORT}`);
     });

@@ -30,7 +30,7 @@ COPY --from=builder /app/prisma ./prisma/
 COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 
 # Expõe a porta da API
-EXPOSE 3000
+EXPOSE 3001
 
 # Executa as migrações e inicia o servidor
 CMD ["sh", "-c", "export DATABASE_URL=\"postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}?schema=public\"; npx prisma migrate deploy && node dist/src/server.js"]

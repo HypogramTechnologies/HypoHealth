@@ -1,10 +1,8 @@
-import { Router } from 'express';
-import dispositivoRoutes from './dispositivoRoutes';
-import medicamentoRoutes from './medicamentoRoutes'; // Importe aqui
+import { Router } from "express";
+import medicamentoRoutes from "./medicamentoRoutes";
 
 const routes = Router();
 
-routes.use('/dispositivos', dispositivoRoutes);
-routes.use('/medicamentos', medicamentoRoutes); // Registre aqui
+routes.use("/medicamentos", medicamentoRoutes);
 
 export default routes;

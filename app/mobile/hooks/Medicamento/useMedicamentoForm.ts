@@ -31,9 +31,9 @@ export function useMedicamentoForm(mode: Mode, medicamentoId?: string, navigatio
   setLoading(true);
   try {
     if (isCreate) {
-      await MedicamentoService.criar(data);
+      await MedicamentoService.create(data);
     } else if (medicamentoId) {
-      await MedicamentoService.atualizar(medicamentoId, data);
+      await MedicamentoService.update(medicamentoId, data);
     }
   } finally {
     setLoading(false);
@@ -44,7 +44,7 @@ export function useMedicamentoForm(mode: Mode, medicamentoId?: string, navigatio
     if (!medicamentoId || isCreate) return;
     
     setLoading(true);
-    MedicamentoService.buscarPorId(medicamentoId)
+    MedicamentoService.getById(medicamentoId)
       .then(dados => reset(dados))
       .catch(error => {
           console.error("Erro ao carregar medicamento:", error);

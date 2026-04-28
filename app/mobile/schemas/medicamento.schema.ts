@@ -1,26 +1,24 @@
 import { z } from 'zod';
 
 export const medicamentoSchema = z.object({
-  medicamentoNome: z
-    .string()
-    .min(1, "Nome do medicamento é obrigatório"),
+  medicamentoNome: z.string().min(2),
+  medicamentoDosagem: z.string().min(1),
+  medicamentoDescricao: z.string().min(2),
 
-    medicamentoDescricao: z
-    .string()
-    //.optional(),
-    .min(1, "Descrição do medicamento é obrigatória"),
+  compartimentos: z.array(z.number()).min(1),
 
+  tipo: z.enum([
+    'HORARIO_FIXO',
+    'INTERVALO',
+  ]),
 
-  medicamentoDosagem: z
-    .string()
-    .min(1, "Dosagem é obrigatória"),
+  intervalo_horas: z.number().optional(),
 
-  compartimentoId: z
-    .string()
-    .min(1, "O compartimento deve ser selecionado"),
-
-    medicamentoCriadoEm: z.string().optional(),
-    
+  horarios: z.array(
+    z.object({
+      hora: z.string(),
+    })
+  ),
 });
 
 export type MedicamentoFormData = z.infer<typeof medicamentoSchema>;

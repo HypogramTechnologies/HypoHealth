@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+/* import { Request, Response } from "express";
 import prisma from "../database/db";
 
 export class MedicamentoController {
@@ -88,3 +88,4 @@ export class MedicamentoController {
 }
 
 export const medicamentoController = new MedicamentoController();
+ */

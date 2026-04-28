@@ -9,7 +9,16 @@ datasource db {
 enum TipoAgendamento {
   HORARIO_FIXO
   INTERVALO
-  DIAS_ESPECIFICOS
+}
+
+enum DiaSemana {
+  DOMINGO
+  SEGUNDA
+  TERCA
+  QUARTA
+  QUINTA
+  SEXTA
+  SABADO
 }
 
 model Dispositivo {
@@ -17,6 +26,10 @@ model Dispositivo {
   nome           String?          @db.VarChar(100)
   numero_serie   String           @unique @db.VarChar(100)
   criado_em      DateTime         @default(now())
+
+  usuario_id     String           @db.Uuid
+  usuario        Usuario          @relation(fields: [usuario_id], references: [id])
+
   compartimentos Compartimento[]
 
   @@map("dispositivos")
@@ -26,41 +39,65 @@ model Compartimento {
   id             String         @id @default(uuid()) @db.Uuid
   dispositivo_id String         @db.Uuid
   posicao        Int
+  dia_semana     DiaSemana    
   descricao      String?        @db.VarChar(100)
   
   dispositivo    Dispositivo    @relation(fields: [dispositivo_id], references: [id], onDelete: Cascade)
-  medicamentos   Medicamento[]
+  medicamentos   MedicamentoCompartimento[]
+  agendamentos   Agendamento[]  
 
   @@map("compartimentos")
 }
 
-model Medicamento {
-  id               String         @id @default(uuid()) @db.Uuid
-  nome             String         @db.VarChar(150)
-  dosagem          String         @db.VarChar(50)
-  compartimento_id String         @db.Uuid
-  criado_em        DateTime       @default(now())
 
-  compartimento    Compartimento  @relation(fields: [compartimento_id], references: [id], onDelete: Cascade)
+
+model Medicamento {
+  id               String                     @id @default(uuid()) @db.Uuid
+  nome             String                     @db.VarChar(150)
+  descricao        String                     @db.VarChar(150)
+  dosagem          String                     @db.VarChar(50)
+  criado_em        DateTime                   @default(now())
+
+  compartimentos   MedicamentoCompartimento[]
   agendamentos     Agendamento[]
 
   @@map("medicamentos")
 }
 
-model Agendamento {
-  id             String           @id @default(uuid()) @db.Uuid
-  medicamento_id String           @db.Uuid
-  tipo           TipoAgendamento
-  data_inicio    DateTime
-  data_fim       DateTime?
-  intervalo_horas Int?
-  criado_em      DateTime         @default(now())
+model MedicamentoCompartimento {
+  id               String         @id @default(uuid()) @db.Uuid
 
-  medicamento    Medicamento      @relation(fields: [medicamento_id], references: [id], onDelete: Cascade)
-  horarios       AgendamentoHorario[]
-  dias           AgendamentoDia[]
+  medicamento_id   String         @db.Uuid
+  compartimento_id String         @db.Uuid
+
+  medicamento      Medicamento    @relation(fields: [medicamento_id], references: [id], onDelete: Cascade)
+  compartimento    Compartimento  @relation(fields: [compartimento_id], references: [id], onDelete: Cascade)
+
+  @@unique([medicamento_id, compartimento_id])
+  @@index([medicamento_id])
+  @@index([compartimento_id])
+
+  @@map("medicamentos_compartimentos")
+}
+
+model Agendamento {
+  id                String           @id @default(uuid()) @db.Uuid
+  medicamento_id    String           @db.Uuid
+  compartimento_id  String           @db.Uuid  
+
+  tipo              TipoAgendamento
+  data_inicio       DateTime
+  data_fim          DateTime?
+  intervalo_horas   Int?
+  criado_em         DateTime         @default(now())
+
+  medicamento       Medicamento      @relation(fields: [medicamento_id], references: [id], onDelete: Cascade)
+  compartimento     Compartimento    @relation(fields: [compartimento_id], references: [id], onDelete: Cascade)
+
+  horarios          AgendamentoHorario[]
 
   @@index([medicamento_id])
+  @@index([compartimento_id])
   @@map("agendamentos")
 }
 
@@ -75,13 +112,18 @@ model AgendamentoHorario {
   @@map("agendamento_horarios")
 }
 
-model AgendamentoDia {
-  id             String      @id @default(uuid()) @db.Uuid
-  agendamento_id String      @db.Uuid
-  dia_semana     Int
+enum TipoUsuario {
+  IDOSO
+  RESPONSAVEL
+}
 
-  agendamento    Agendamento @relation(fields: [agendamento_id], references: [id], onDelete: Cascade)
+model Usuario {
+  id          String   @id @default(uuid()) @db.Uuid
+  nome        String   @db.VarChar(150)
+  email       String   @unique @db.VarChar(150)
+  senha       String
+  tipo        TipoUsuario
+  criado_em   DateTime @default(now())
 
-  @@index([agendamento_id])
-  @@map("agendamento_dias")
+  dispositivos Dispositivo[]
 }

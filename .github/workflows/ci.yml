@@ -43,3 +43,11 @@ jobs:
       
       - name: Build Docker Image
         run: docker build -t hypo-health-backend ./backend
+
+  deploy:
+    needs: docker-build 
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Deploy to Render
+        run: curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }}

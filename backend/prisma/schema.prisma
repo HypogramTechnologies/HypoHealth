@@ -3,13 +3,10 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
+  provider = "postgresql"
 }
 
-enum TipoAgendamento {
-  HORARIO_FIXO
-  INTERVALO
-}
+
 
 enum DiaSemana {
   DOMINGO
@@ -21,15 +18,14 @@ enum DiaSemana {
   SABADO
 }
 
+
 model Dispositivo {
   id             String           @id @default(uuid()) @db.Uuid
   nome           String?          @db.VarChar(100)
   numero_serie   String           @unique @db.VarChar(100)
   criado_em      DateTime         @default(now())
 
-  usuario_id     String?          @db.Uuid
-  usuario        Usuario?         @relation(fields: [usuario_id], references: [id])
-
+  usuarios       UsuarioDispositivo[]
   compartimentos Compartimento[]
 
   @@map("dispositivos")
@@ -39,13 +35,13 @@ model Compartimento {
   id             String         @id @default(uuid()) @db.Uuid
   dispositivo_id String         @db.Uuid
   posicao        Int
-  dia_semana     DiaSemana?    
+  dia_semana     DiaSemana    
   descricao      String?        @db.VarChar(100)
   
   dispositivo    Dispositivo    @relation(fields: [dispositivo_id], references: [id], onDelete: Cascade)
   medicamentos   MedicamentoCompartimento[]
   agendamentos   Agendamento[]  
-
+  @@unique([dispositivo_id, dia_semana])
   @@map("compartimentos")
 }
 
@@ -80,6 +76,11 @@ model MedicamentoCompartimento {
   @@map("medicamentos_compartimentos")
 }
 
+enum TipoAgendamento {
+  HORARIO_FIXO
+  INTERVALO
+}
+
 model Agendamento {
   id                String           @id @default(uuid()) @db.Uuid
   medicamento_id    String           @db.Uuid
@@ -112,8 +113,8 @@ model AgendamentoHorario {
   @@map("agendamento_horarios")
 }
 
-enum TipoUsuario {
-  IDOSO
+enum TipoAcesso {
+  PROPRIETARIO
   RESPONSAVEL
 }
 
@@ -122,8 +123,26 @@ model Usuario {
   nome        String   @db.VarChar(150)
   email       String   @unique @db.VarChar(150)
   senha       String
-  tipo        TipoUsuario
   criado_em   DateTime @default(now())
 
-  dispositivos Dispositivo[]
+  dispositivos UsuarioDispositivo[]
+}
+
+model UsuarioDispositivo {
+  id             String   @id @default(uuid()) @db.Uuid
+
+  usuario_id     String   @db.Uuid
+  dispositivo_id String   @db.Uuid
+
+  tipo_acesso    TipoAcesso
+  criado_em      DateTime @default(now())
+
+  usuario        Usuario      @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
+  dispositivo    Dispositivo  @relation(fields: [dispositivo_id], references: [id], onDelete: Cascade)
+
+  @@unique([usuario_id, dispositivo_id])
+  @@index([usuario_id])
+  @@index([dispositivo_id])
+
+  @@map("usuarios_dispositivos")
 }

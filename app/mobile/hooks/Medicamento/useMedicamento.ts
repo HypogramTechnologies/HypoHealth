@@ -36,7 +36,7 @@ export function useCarteira() {
     });
 
     try {
-      const response = await MedicamentoService.buscarTodas(filtros);
+      const response = await MedicamentoService.getAll(filtros);
 
       if (requestId !== requestIdRef.current) return;
 
@@ -80,7 +80,7 @@ export function useCarteira() {
     });
 
     try {
-      await MedicamentoService.excluir(medicamentoId);
+      await MedicamentoService.delete(medicamentoId);
     } catch (err: any) {
       console.error("Erro ao deletar medicamento:", err);
 

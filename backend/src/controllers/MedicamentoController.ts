@@ -4,7 +4,7 @@ import prisma from "../database/db";
 export class MedicamentoController {
   async create(req: Request, res: Response) {
     try {
-      const { nome, dosagem, descricao} = req.body;
+      const { nome, dosagem, descricao } = req.body;
 
       if (!nome || !dosagem || !descricao) {
         return res
@@ -13,7 +13,7 @@ export class MedicamentoController {
       }
 
       const novoMedicamento = await prisma.medicamento.create({
-        data: { nome, dosagem, descricao},
+        data: { nome, dosagem, descricao },
       });
       return res.status(201).json(novoMedicamento);
     } catch (error) {
@@ -53,14 +53,14 @@ export class MedicamentoController {
   async update(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const { nome, dosagem, descricao} = req.body;
+      const { nome, dosagem, descricao } = req.body;
 
       const medicamentoAtualizado = await prisma.medicamento.update({
         where: { id: String(id) },
         data: {
           nome,
           dosagem,
-          descricao
+          descricao,
         },
       });
 
@@ -88,4 +88,3 @@ export class MedicamentoController {
 }
 
 export const medicamentoController = new MedicamentoController();
-

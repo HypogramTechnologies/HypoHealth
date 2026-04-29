@@ -1,19 +1,19 @@
-/* import { Request, Response } from "express";
+import { Request, Response } from "express";
 import prisma from "../database/db";
 
 export class MedicamentoController {
   async create(req: Request, res: Response) {
     try {
-      const { nome, dosagem, compartimento } = req.body;
+      const { nome, dosagem, descricao } = req.body;
 
-      if (!nome || !dosagem || !compartimento) {
+      if (!nome || !dosagem || !descricao) {
         return res
           .status(400)
-          .json({ erro: "Nome, dosagem e compartimento são obrigatórios." });
+          .json({ erro: "Nome e dosagem são obrigatórios." });
       }
 
       const novoMedicamento = await prisma.medicamento.create({
-        data: { nome, dosagem, compartimento_id: compartimento },
+        data: { nome, dosagem, descricao },
       });
       return res.status(201).json(novoMedicamento);
     } catch (error) {
@@ -53,14 +53,14 @@ export class MedicamentoController {
   async update(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const { nome, dosagem, compartimento } = req.body;
+      const { nome, dosagem, descricao } = req.body;
 
       const medicamentoAtualizado = await prisma.medicamento.update({
         where: { id: String(id) },
         data: {
           nome,
           dosagem,
-          compartimento_id: compartimento,
+          descricao,
         },
       });
 
@@ -88,4 +88,3 @@ export class MedicamentoController {
 }
 
 export const medicamentoController = new MedicamentoController();
- */

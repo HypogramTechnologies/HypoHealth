@@ -1,7 +1,6 @@
-import { View, Text, ScrollView } from 'react-native';
+import { View, Text, ScrollView, ActivityIndicator } from 'react-native';
 
 import { useOptionalTabBarHeight } from '../../hooks/Outros/useBottomTabBarHeight';
-
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useTheme } from '../../contexts/Theme/themeContext';
@@ -10,9 +9,10 @@ import { styles } from './formStyles';
 interface FormProps {
   title?: string;
   children: React.ReactNode;
+  loading?: boolean;
 }
 
-export function Form({ title, children }: FormProps) {
+export function Form({ title, children, loading }: FormProps) {
   const { theme } = useTheme();
   const stylesForm = styles(theme);
 
@@ -20,16 +20,15 @@ export function Form({ title, children }: FormProps) {
   const insets = useSafeAreaInsets();
 
   const contentPaddingBottom =
-    tabBarHeight +
-    insets.bottom +
-    80;
+    tabBarHeight + insets.bottom + 80;
 
   return (
     <View style={stylesForm.container}>
-      {title &&(
-      <View style={stylesForm.header}>
-        <Text style={stylesForm.title}>{title}</Text>
-      </View>)}
+      {title && (
+        <View style={stylesForm.header}>
+          <Text style={stylesForm.title}>{title}</Text>
+        </View>
+      )}
 
       <ScrollView
         style={stylesForm.scroll}
@@ -42,6 +41,13 @@ export function Form({ title, children }: FormProps) {
           {children}
         </View>
       </ScrollView>
+
+      {/* 🔥 LOADING OVERLAY */}
+      {loading && (
+        <View style={stylesForm.loadingOverlay}>
+          <ActivityIndicator size="large" />
+        </View>
+      )}
     </View>
   );
 }

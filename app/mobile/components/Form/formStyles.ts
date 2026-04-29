@@ -19,6 +19,14 @@ export const styles = (theme: ThemeType) =>
       paddingTop: 15,
     },
 
+    loadingOverlay: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: 'rgba(0,0,0,0.2)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 10,
+    },
+
     title: {
       fontSize: 20,
       fontWeight: '600',

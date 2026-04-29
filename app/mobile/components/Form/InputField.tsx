@@ -68,7 +68,7 @@ export function InputField({
         paddingHorizontal: 12,
       }}
     >
-      {/* ÍCONE ESQUERDA */}
+   
       {icon && iconPosition === 'inside' && (
         <MaterialCommunityIcons
           name={icon as any} 
@@ -78,7 +78,7 @@ export function InputField({
         />
       )}
 
-      {/* INPUT */}
+  
       <TextInput
         value={displayValue}
         placeholder={placeholder}
@@ -95,7 +95,7 @@ export function InputField({
         }}
       />
 
-      {/* ÍCONE DIREITA (ex: olho) */}
+   
       {rightIcon && (
         <TouchableOpacity onPress={onRightIconPress}>
           <MaterialCommunityIcons
@@ -120,7 +120,7 @@ export function InputField({
         >
           {icon && iconPosition === 'top' && (
             <MaterialCommunityIcons
-              name={icon as any} // 🔥 CORRIGIDO
+              name={icon as any} 
               size={18}
               color={theme.colors.detail}
             />

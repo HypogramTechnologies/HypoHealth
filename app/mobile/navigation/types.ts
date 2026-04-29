@@ -6,6 +6,8 @@ export type RootStackParamList = {
 
   Perfil: undefined;
   Medicamento: undefined;
+  Historico:undefined;
+  Alerta:undefined;
   MedicamentoForm: {
     mode: Mode;
     medicamentoId?: string;

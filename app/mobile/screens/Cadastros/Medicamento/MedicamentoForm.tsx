@@ -1,21 +1,6 @@
-
-import React, { useEffect } from 'react';
-import {
-  Text,
-} from 'react-native';
-
-import {
-  useForm,
-  Controller,
-  useFieldArray,
-} from 'react-hook-form';
-
-import { zodResolver } from '@hookform/resolvers/zod';
-
-import {
-  medicamentoSchema,
-  MedicamentoFormData,
-} from '../../../schemas/medicamento.schema';
+import React from 'react';
+import { Text } from 'react-native';
+import { Controller } from 'react-hook-form';
 
 import { Form } from '../../../components/Form/Form';
 import { InputField } from '../../../components/Form/InputField';
@@ -28,136 +13,50 @@ import { NumberSelector } from '../../../components/MedicamentoForm/NumberSelect
 import { ActionButton } from '../../../components/MedicamentoForm/ActionButton';
 import { TimeField } from '../../../components/MedicamentoForm/TimeField';
 
-export function MedicamentoForm() {
+import { useMedicamentoForm } from '../../../hooks/Medicamento/useMedicamentoForm';
+
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../../../navigation/types';
+import { Row } from '@/mobile/components/Form/Row';
+
+type Props = NativeStackScreenProps<
+  RootStackParamList,
+  'MedicamentoForm'
+>;
+
+export function MedicamentoForm({ route }: Props) {
+  const { mode, medicamentoId } = route.params;
+  console.log('MedicamentoForm renderizado com mode:', mode, 'e medicamentoId:', medicamentoId);
   const { theme } = useTheme();
   const s = useStyles(theme);
 
   const {
     control,
     handleSubmit,
-    setValue,
-    watch,
-  } =
-    useForm<MedicamentoFormData>({
-      resolver: zodResolver(
-        medicamentoSchema
-      ),
-      defaultValues: {
-        medicamentoNome: '',
-        medicamentoDosagem:
-          '',
-        medicamentoDescricao:
-          '',
-        compartimentos: [],
-        tipo: 'HORARIO_FIXO',
-        intervalo_horas: 8,
-        horarios: [
-          { hora: '08:00' },
-        ],
-      },
-    });
-
-  const {
+    save,
+    tipo,
+    intervalo,
+    compartimentos,
     fields,
     append,
     remove,
-    replace,
-  } = useFieldArray({
-    control,
-    name: 'horarios',
-  });
-
-  const tipo = watch('tipo');
-  const gavetas =
-    watch('compartimentos');
-  const intervalo =
-    watch('intervalo_horas');
-
-  function toggleBox(
-    value: number
-  ) {
-    setValue(
-      'compartimentos',
-      gavetas.includes(value)
-        ? gavetas.filter(
-            x => x !== value
-          )
-        : [...gavetas, value]
-    );
-  }
-
-  function gerar(
-    inicio = '08:00',
-    h = 8
-  ) {
-    const [hora, min] =
-      inicio
-        .split(':')
-        .map(Number);
-
-    const total =
-      Math.floor(24 / h);
-
-    const lista = [];
-
-    for (
-      let i = 0;
-      i < total;
-      i++
-    ) {
-      const nova =
-        (hora + i * h) % 24;
-
-      lista.push({
-        hora: `${String(
-          nova
-        ).padStart(
-          2,
-          '0'
-        )}:${String(
-          min
-        ).padStart(2, '0')}`,
-      });
-    }
-
-    replace(lista);
-  }
-
-  useEffect(() => {
-    if (
-      tipo ===
-      'INTERVALO'
-    ) {
-      gerar(
-        fields[0]?.hora,
-        intervalo
-      );
-    }
-  }, [tipo, intervalo]);
-
-  function submit(
-    data: MedicamentoFormData
-  ) {
-    console.log(data);
-  }
+    setValue,
+    toggleCompartimento,
+    screen,
+  } = useMedicamentoForm(mode, medicamentoId);
 
   return (
-    <Form>
+    <Form loading={screen.loading}>
+  
       <Controller
         control={control}
         name="medicamentoNome"
-        render={({
-          field,
-        }) => (
+        render={({ field }) => (
           <InputField
             label="Nome do medicamento"
             placeholder="Losartana"
-            value={
-              field.value
-            }
-            onChangeText={
-              field.onChange
-            }
+            value={field.value}
+            onChangeText={field.onChange}
           />
         )}
       />
@@ -165,183 +64,112 @@ export function MedicamentoForm() {
       <Controller
         control={control}
         name="medicamentoDescricao"
-        render={({
-          field,
-        }) => (
+        render={({ field }) => (
           <InputField
             label="Descrição do medicamento"
-            placeholder="Dor de cabeça, pílula azul, branca e amarela"
-            value={
-              field.value
-            }
-            onChangeText={
-              field.onChange
-            }
+            placeholder="Dor de cabeça, pílula azul..."
+            value={field.value}
+            onChangeText={field.onChange}
           />
         )}
       />
+
 
       <Controller
         control={control}
         name="medicamentoDosagem"
-        render={({
-          field,
-        }) => (
+        render={({ field }) => (
           <InputField
             label="Dosagem"
             placeholder="50mg"
-            value={
-              field.value
-            }
-            onChangeText={
-              field.onChange
-            }
+            value={field.value}
+            onChangeText={field.onChange}
           />
         )}
       />
 
-      <Text style={s.section}>
-        Compartimentos
-      </Text>
+      <Text style={s.section}>Compartimentos</Text>
 
       <NumberSelector
-        values={[
-          1,2,3,4,5,6,7,
-        ]}
-        selected={gavetas}
+        values={[1, 2, 3, 4, 5, 6, 7]}
+        description={['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']}
+        selected={compartimentos}
         multiple
-        onChange={toggleBox}
+        onChange={toggleCompartimento}
       />
 
-      <Text style={s.section}>
-        Como tomar?
-      </Text>
+    
+      <Text style={s.section}>Quando tomar</Text>
 
-      <SelectCard
+      <Row>
+        <SelectCard
         title="Horário fixo"
         subtitle="8h, 14h, 20h"
         icon="time-outline"
-        active={
-          tipo ===
-          'HORARIO_FIXO'
-        }
-        onPress={() =>
-          setValue(
-            'tipo',
-            'HORARIO_FIXO'
-          )
-        }
+        active={tipo === 'HORARIO_FIXO'}
+        onPress={() => setValue('tipo', 'HORARIO_FIXO')}
       />
 
       <SelectCard
         title="De X em X horas"
         subtitle="Ex: 8h"
         icon="repeat-outline"
-        active={
-          tipo ===
-          'INTERVALO'
-        }
-        onPress={() =>
-          setValue(
-            'tipo',
-            'INTERVALO'
-          )
-        }
+        active={tipo === 'INTERVALO'}
+        onPress={() => setValue('tipo', 'INTERVALO')}
       />
+      </Row>
 
-      {tipo ===
-        'INTERVALO' && (
+    
+      {tipo === 'INTERVALO' && (
         <>
-          <Text
-            style={
-              s.section
-            }
-          >
-            Intervalo
-          </Text>
+          <Text style={s.section}>Intervalo</Text>
 
           <NumberSelector
-            values={[
-              4,6,8,12,
-            ]}
-            selected={[
-              intervalo ||
-                8,
-            ]}
-            onChange={v =>
-              setValue(
-                'intervalo_horas',
-                v
-              )
-            }
+            values={[4, 6, 8, 12]}
+            selected={[intervalo || 8]}
+            onChange={(v) => setValue('intervalo_horas', v)}
           />
         </>
       )}
 
-      <Text style={s.section}>
-        Horários
-      </Text>
+      {/* Horários */}
+      <Text style={s.section}>Horários</Text>
 
-      {fields.map(
-        (
-          item,
-          index
-        ) => (
-          <Controller
-            key={
-              item.id
-            }
-            control={
-              control
-            }
-            name={`horarios.${index}.hora`}
-            render={({
-              field,
-            }) => (
-              <TimeField
-                value={
-                  field.value
-                }
-                onChange={
-                  field.onChange
-                }
-                onRemove={
-                  tipo ===
-                    'HORARIO_FIXO' &&
-                  fields.length >
-                    1
-                    ? () =>
-                        remove(
-                          index
-                        )
-                    : undefined
-                }
-              />
-            )}
-          />
-        )
-      )}
+      {fields.map((item, index) => (
+        <Controller
+          key={item.id}
+          control={control}
+          name={`horarios.${index}.hora`}
+          render={({ field }) => (
+            <TimeField
+              value={field.value}
+              onChange={field.onChange}
+              onRemove={
+                tipo === 'HORARIO_FIXO' && fields.length > 1
+                  ? () => remove(index)
+                  : undefined
+              }
+            />
+          )}
+        />
+      ))}
 
-      {tipo ===
-        'HORARIO_FIXO' && (
+      {/* Adicionar horário */}
+      {tipo === 'HORARIO_FIXO' && (
         <ActionButton
           title="Adicionar horário"
           icon="add"
           outlined
-          onPress={() =>
-            append({
-              hora: '12:00',
-            })
-          }
+          onPress={() => append({ hora: '12:00' })}
         />
       )}
 
+  
       <ActionButton
-        title="Salvar"
+      
+        title={mode === 'create' ? 'Salvar' : 'Atualizar'}
         icon="save-outline"
-        onPress={handleSubmit(
-          submit
-        )}
+        onPress={handleSubmit(save)}
       />
     </Form>
   );

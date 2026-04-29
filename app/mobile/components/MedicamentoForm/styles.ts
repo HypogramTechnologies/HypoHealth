@@ -165,6 +165,17 @@ export const useStyles = (theme: ThemeType) => {
       marginTop: 10,
     },
 
+    descriptionText: {
+      fontSize: 12,
+      opacity: 0.7,
+      color: theme.colors.text,
+    },
+
+    descriptionTextActive: {
+      opacity: 1,
+     
+    },
+
     btnOutlineText: {
       color:
         theme.colors

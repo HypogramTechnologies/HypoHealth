@@ -88,16 +88,31 @@ docker-compose up -d
 
 #### 📋 Tarefas  
 
-| ID  | Nome                                                                                          | Responsáveis                                  | Tarefa Finalizada | Link                                                                 | Requisitos atendidos |
-|-----|-----------------------------------------------------------------------------------------------|-----------------------------------------------|-------------------|----------------------------------------------------------------------|----------------------|
+| ID | Nome | Responsável(is) | Status | Link | Requisitos Atendidos |
+|---|---|---|---|---|---|
+| -- | Implementar cadastro de Usuário | Adson Ottoni Balbino Filho | ✔ | https://trello.com/c/FYDI8aKC/23-implementar-cadastro-de-usuário | — |
+| -- | Implementar tela para listar os medicamentos | Andressa Stephane Toledo da Silva | ✔ | https://trello.com/c/FlTXhI0h/30-implementar-tela-para-listar-os-medicamentos | RF01/02 |
+| -- | Implementar tela de alertas | Andressa Stephane Toledo da Silva | ✔ | https://trello.com/c/wSRysqXJ/36-implementar-tela-de-alertas | RF05/08 |
+| -- | Implementar tela de histórico | Andressa Stephane Toledo da Silva | ✔ | https://trello.com/c/Xjtam8kb/29-implementar-tela-de-histórico | — |
+| -- | Implementar tela de cadastro de Agendamento do Medicamento (horários, dias) | Andressa Stephane Toledo da Silva | ✔ | https://trello.com/c/LJRT44vs/26-implementar-tela-de-cadastro-de-agendamento-do-medicamento-horários-dias | RF01/02 |
+| -- | Implementar cadastro de Medicamentos | Andressa Stephane Toledo da Silva | ✔ | https://trello.com/c/D5sl5Eg4/38-implementar-cadastro-de-medicamentos | RF01/02 |
+| -- | Implementar tabs e navegação | Andressa Stephane Toledo da Silva | ✔ | https://trello.com/c/tcSuNo0H/35-implementar-tabs-e-navegação | RNF04 |
+| -- | Hospedar o banco de dados, build do backend e broker | Carlos Eduardo da Silva Magalhães | ✔ | https://trello.com/c/iTyCQVZt/32-hospedar-o-banco-de-dados-build-do-backend-e-broker | RNF01/05, RNF02/03 |
+| -- | Implementar configuração inicial do broker se comunicando com o backend | Carlos Eduardo da Silva Magalhães | ✔ | https://trello.com/c/QxSMNpls/31-implementar-configuração-inicial-do-broker-se-comunicando-com-o-backend | RF11, RNF02/03 |
+| -- | Implementar tela cadastro de Medicamentos | João Pedro Souza dos Anjos | ✔ | https://trello.com/c/SvWMNzWl/25-implementar-tela-cadastro-de-medicamentos | RF01/02 |
+| -- | Implementar cadastro de Agendamento do Medicamento (horários, dias) | João Pedro Souza dos Anjos | ✔ | https://trello.com/c/YEFX9RDx/37-implementar-cadastro-de-agendamento-do-medicamento-horários-dias | RF01/02 |
+| -- | Implementar pipeline para buildar a aplicação e rodar os testes | Carlos Eduardo da Silva Magalhães | ✔ | https://trello.com/c/8TS4Gj7I/33-implementar-pipeline-para-buildar-as-aplicação-e-rodar-os-testes | RNF08/09 |
+| -- | Implementar build com Docker | Carlos Eduardo da Silva Magalhães | ✔ | https://trello.com/c/eEV2Htd9/34-implementar-build-com-o-docker | RNF01/05 |
+| -- | Implementar cadastro de dispositivo (setup) | Carlos Eduardo da Silva Magalhães | ✔ | https://trello.com/c/wbpglhQS/22-implementar-cadastro-de-dispositivo-setup | RF11 |
+| -- | Organizar o repositório no GitHub (README, proteção da branch main e estruturação dos repositórios app/backend/IoT/docs) | Carlos Eduardo da Silva Magalhães | ✔ | https://trello.com/c/o8Fo4CZJ/21-organizar-o-repositório-no-github-readme-bloquear-commit-direto-na-main-e-inicializar-o-projeto-organizar-os-repositórios-app-ba | — |
 
-
-
+---
 
 #### 📉 Burndown  
 
-[Burndown Sprint 1]()  
+[Burndown Sprint 1](https://docs.google.com/spreadsheets/d/1YuzbyKSY1FIR5lAljDzvItmEe6e0Qt3qpkBV0XSYNkI/edit?pli=1&gid=1331580154#gid=1331580154)  
 
+<img width="947" height="495" alt="image" src="https://github.com/user-attachments/assets/b5f08de1-31fc-4782-870a-44c2f33a01c5" />
 ---
 
 ### 🌀 Sprint 2

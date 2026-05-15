@@ -4,6 +4,7 @@ import prisma from "./database/db";
 import routes from "./routes/index";
 import mqttService from "./services/MqttService";
 import agendamentoService from "./services/AgendamentoService";
+import { IMqttEvent } from "./types/IMqtt";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -19,7 +20,7 @@ const start = async () => {
 
     mqttService.connect();
 
-    mqttService.onEventReceived((mac, payload) => {
+    mqttService.onEventReceived((mac: string, payload: IMqttEvent) => {
       console.log(`Evento recebido do dispositivo ${mac}:`, payload);
       //Chamar serviço para salvar o histórico e retirada do medicamento
     });

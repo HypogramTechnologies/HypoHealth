@@ -109,13 +109,41 @@ model AgendamentoHorario {
 
   agendamento    Agendamento @relation(fields: [agendamento_id], references: [id], onDelete: Cascade)
 
+  retiradas RetiradaMedicamento[]
+
   @@index([agendamento_id])
   @@map("agendamento_horarios")
+}
+
+model RetiradaMedicamento {
+  id                       String               @id @default(uuid()) @db.Uuid
+
+  agendamento_horario_id   String               @db.Uuid
+
+  horario_programado       DateTime             @db.Timestamp(6)
+  horario_retirada         DateTime?            @db.Timestamp(6)
+
+  status                   StatusRetirada       @default(PENDENTE)
+
+  criado_em                DateTime             @default(now())
+
+  agendamentoHorario       AgendamentoHorario   @relation( fields: [agendamento_horario_id], references: [id],onDelete: Cascade)
+
+  @@index([agendamento_horario_id])
+
+  @@map("retiradas_medicamentos")
 }
 
 enum TipoAcesso {
   PROPRIETARIO
   RESPONSAVEL
+}
+
+enum StatusRetirada {
+  PENDENTE
+  RETIRADO
+  ATRASADO
+  NAO_RETIRADO
 }
 
 model Usuario {

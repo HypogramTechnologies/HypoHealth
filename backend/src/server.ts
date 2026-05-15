@@ -3,7 +3,7 @@ import cors from "cors";
 import prisma from "./database/db";
 import routes from "./routes/index";
 import mqttService from "./services/MqttService";
-import agendamentoService from "./services/AgendamentoService";
+import agendamentoService from "./services/AgendadorCronService";
 import { IMqttEvent } from "./types/IMqtt";
 
 const app = express();

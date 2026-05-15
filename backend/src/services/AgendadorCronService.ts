@@ -5,7 +5,7 @@ import { DateTime } from "luxon";
 import mqttService from "./MqttService";
 import { IMqttCommand } from "../types/IMqtt";
 
-class AgendamentoService {
+class AgendadorCronService {
   public iniciar() {
     //Roda a cada minuto
     cron.schedule("* * * * *", async () => {
@@ -86,4 +86,4 @@ class AgendamentoService {
   }
 }
 
-export default new AgendamentoService();
+export default new AgendadorCronService();

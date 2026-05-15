@@ -13,7 +13,11 @@ export class MedicamentoController {
       }
 
       const novoMedicamento = await prisma.medicamento.create({
-        data: { nome, dosagem, descricao },
+        data: {
+          nome,
+          dosagem,
+          descricao,
+        },
       });
       return res.status(201).json(novoMedicamento);
     } catch (error) {

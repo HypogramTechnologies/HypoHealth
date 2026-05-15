@@ -1,3 +1,5 @@
+import dayjs from 'dayjs';
+
 export const formatar = {
   // Formata 12345678 para 12345-678
   cep: (value: string) => {
@@ -44,3 +46,16 @@ export const formatar = {
       .replace(/(^\w{1})|(\s+\w{1})/g, (letra) => letra.toUpperCase());
   }
 };
+
+export function formatarData(date: string) {
+  const d = dayjs(date);
+
+  if (d.isSame(dayjs(), 'day')) return 'Hoje';
+  if (d.isSame(dayjs().subtract(1, 'day'), 'day')) return 'Ontem';
+
+  return d.format('DD/MM/YYYY');
+}
+
+export function formatarHora(date: string) {
+  return dayjs(date).format('DD/MM [às] HH:mm');
+}

@@ -8,6 +8,9 @@ import { BottomTabs } from "./bottomTabs";
 import { Perfil } from "../screens/Perfil";
 import  { Medicamento } from "../screens/Cadastros/Medicamento";
 import { MedicamentoForm } from "../screens/Cadastros/Medicamento/MedicamentoForm";
+import { Historico } from "../screens/Cadastros/Historico";
+import {Alerta} from "../screens/Cadastros/Alerta";
+
 // import { Agendamento } from "../screens/Cadastros/Agendamento";
 // import { AgendamentoForm } from "../screens/Cadastros/Agendamento/AgendamentoForm";
 // import { Responsavel } from "../screens/Cadastros/Responsavel";
@@ -44,6 +47,17 @@ export function AppStack() {
         options={{ headerShown: false }}
       />
 
+      <Stack.Screen
+        name="Historico"
+        component={Historico}
+        options={{ headerShown: false }}
+      />
+
+      <Stack.Screen
+        name="Alerta"
+        component={Alerta}
+        options={{ headerShown: false }}
+      />
 
       <Stack.Screen
         name="Medicamento"

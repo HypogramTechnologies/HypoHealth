@@ -6,10 +6,8 @@ import { useTheme } from '../../mobile/contexts/Theme/themeContext';
 
 import {Home} from '../screens/Home'; 
 import { Perfil } from '../screens/Perfil';
-// import {Historico} from '../screens/Home'; 
-// import {Perfil} from '../screens/Home'; 
-// import {Alerta} from '../screens/Home'; 
-
+import { Historico } from '../screens/Cadastros/Historico'; 
+import { Alerta } from '../screens/Cadastros/Alerta';
 
 const Tab = createBottomTabNavigator();
 
@@ -41,7 +39,7 @@ export function BottomTabs() {
   
      <Tab.Screen 
         name="Histórico" 
-        component={Home} 
+        component={Historico} 
         options={{
           tabBarLabel: 'Histórico',
           tabBarIcon: ({ color, size }) => (
@@ -52,7 +50,7 @@ export function BottomTabs() {
 
        <Tab.Screen 
         name="Alertas" 
-        component={Home} 
+        component={Alerta} 
         options={{
           tabBarLabel: 'Alertas',
           tabBarIcon: ({ color, size }) => (

@@ -3,7 +3,7 @@ import cors from "cors";
 import prisma from "./database/db";
 import routes from "./routes/index";
 import mqttService from "./services/MqttService";
-import agendamentoService from "./services/AgendamentoService";
+import agendadorCronService from "./services/AgendadorCronService";
 import { IMqttEvent } from "./types/IMqtt";
 
 const app = express();
@@ -26,7 +26,7 @@ const start = async () => {
     });
 
     // Inicia o monitoramento de horários
-    agendamentoService.iniciar();
+    agendadorCronService.iniciar();
 
     app.listen(PORT, () => {
       console.log(` Servidor rodando em http://localhost:${PORT}`);

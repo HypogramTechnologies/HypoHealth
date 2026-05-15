@@ -7,6 +7,6 @@ const routes = Router();
 
 routes.use("/medicamentos", medicamentoRoutes);
 routes.use("/agendamentos", agendamentoRoutes);
-routes.use("/usuarios", usuarioRoutes)
+routes.use("/usuarios", usuarioRoutes);
 
 export default routes;

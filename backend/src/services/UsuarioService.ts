@@ -1,5 +1,9 @@
 import bcrypt from "bcrypt";
-import { CreateUsuarioDTO, UpdateUsuarioDTO, UsuarioResponseDTO } from "../dtos/usuarioDTO";
+import {
+  CreateUsuarioDTO,
+  UpdateUsuarioDTO,
+  UsuarioResponseDTO,
+} from "../dtos/usuarioDTO";
 import prisma from "../database/db";
 
 const salt = 10;
@@ -7,7 +11,7 @@ const salt = 10;
 export class UsuarioService {
   async create(data: CreateUsuarioDTO): Promise<UsuarioResponseDTO> {
     const usuarioExiste = await prisma.usuario.findUnique({
-      where: { email: data.email }
+      where: { email: data.email },
     });
 
     if (usuarioExiste) {
@@ -20,7 +24,7 @@ export class UsuarioService {
       data: {
         nome: data.nome,
         email: data.email,
-        senha: senhaHash
+        senha: senhaHash,
       },
     });
 
@@ -28,26 +32,28 @@ export class UsuarioService {
       id: usuario.id,
       nome: usuario.nome,
       email: usuario.email,
-      criado_em: usuario.criado_em
+      criado_em: usuario.criado_em,
     };
   }
 
-  async update(id: string, data: UpdateUsuarioDTO): Promise<UsuarioResponseDTO> {
-    
+  async update(
+    id: string,
+    data: UpdateUsuarioDTO,
+  ): Promise<UsuarioResponseDTO> {
     if (data.senha) {
       data.senha = await bcrypt.hash(data.senha, salt);
     }
 
     const usuario = await prisma.usuario.update({
       where: { id },
-      data
+      data,
     });
 
     return {
       id: usuario.id,
       nome: usuario.nome,
       email: usuario.email,
-      criado_em: usuario.criado_em
+      criado_em: usuario.criado_em,
     };
   }
 
@@ -60,7 +66,7 @@ export class UsuarioService {
       id: u.id,
       nome: u.nome,
       email: u.email,
-      criado_em: u.criado_em
+      criado_em: u.criado_em,
     }));
   }
 
@@ -68,8 +74,8 @@ export class UsuarioService {
     const usuario = await prisma.usuario.findUnique({
       where: { id },
       include: {
-        dispositivos: true
-      }
+        dispositivos: true,
+      },
     });
 
     if (!usuario) return null;
@@ -79,16 +85,16 @@ export class UsuarioService {
       nome: usuario.nome,
       email: usuario.email,
       criado_em: usuario.criado_em,
-      dispositivos: usuario.dispositivos.map(d => ({
+      dispositivos: usuario.dispositivos.map((d) => ({
         id: d.id,
-        tipo: d.tipo_acesso
-      }))
+        tipo: d.tipo_acesso,
+      })),
     };
   }
 
   async delete(id: string): Promise<void> {
     await prisma.usuario.delete({
-      where: { id }
+      where: { id },
     });
   }
 }

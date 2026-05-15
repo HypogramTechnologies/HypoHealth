@@ -21,7 +21,7 @@ export function useAlerta(filters: Filters) {
     const res: AlertaItem[] = [
       {
         id: "1",
-        titulo: "Alerta de hipoglicemia",
+        titulo: "Alerta de medicação",
         descricao: "Nível de glicose abaixo de 70 mg/dL",
         dataHora: "2024-06-01T08:30:00",
         tipo: "aviso"

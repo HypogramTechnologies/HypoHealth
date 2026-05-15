@@ -47,7 +47,7 @@ export default function LoginScreen() {
         <Text
           style={{ fontSize: 24, fontWeight: "bold", color: theme.colors.text }}
         >
-          App Scholar
+         HypoHealth
         </Text>
         <Text style={{ color: theme.colors.destaque, textAlign: 'center' }}>
           Gerenciamento de medicamentos 

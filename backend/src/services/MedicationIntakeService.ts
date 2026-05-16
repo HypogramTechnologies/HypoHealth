@@ -1,86 +1,83 @@
 import prisma from "../database/db";
 import { StatusRetirada } from "@prisma/client";
-
-interface EventoRetirada {
-  evento_id: string;
-  evento: string;
-  dispositivo_id: string;
-  compartimento_id: string;
-  timestamp: string;
-}
+import { IMqttEvent } from "../types/IMqtt";
 
 export class MedicationIntakeService {
+  async processarRetirada(payload: IMqttEvent, mac?: string) {
+    try {
+      const dataEvento = new Date(payload.timestamp);
 
-  async processarRetirada(payload: EventoRetirada) {
+      console.log("Processando evento:", payload);
 
-    const dataEvento = new Date(payload.timestamp);
+      //Encontrar compartimento pelo número (1, 2, 3...)
 
-    // janela de tolerância
-    const limiteInferior = new Date(
-      dataEvento.getTime() - 1000 * 60 * 60
-    );
-
-    const limiteSuperior = new Date(
-      dataEvento.getTime() + 1000 * 60 * 30
-    );
-
-    console.log(payload.compartimento_id);
-    // procurar retirada pendente
-    const retirada =
-      await prisma.retiradaMedicamento.findFirst({
+      const compartimento = await prisma.compartimento.findFirst({
         where: {
-          status: "PENDENTE"
+          posicao: payload.compartimento,
         },
+      });
 
+      if (!compartimento) {
+        console.log("Compartimento não encontrado:", payload.compartimento);
+        return;
+      }
+      //Buscar a última retirada do compartimento
+      const retirada = await prisma.retiradaMedicamento.findFirst({
+        where: {
+          agendamentoHorario: {
+            agendamento: {
+              compartimento_id: compartimento.id,
+            },
+          },
+        },
         include: {
           agendamentoHorario: {
             include: {
-              agendamento: true
-            }
-          }
-        }
+              agendamento: true,
+            },
+          },
+        },
+        orderBy: {
+          horario_programado: "desc",
+        },
       });
 
-    console.log(JSON.stringify(retirada, null, 2));
+      if (!retirada) {
+        console.log("Nenhuma retirada encontrada para o compartimento");
+        return;
+      }
+      
+      //Calcular diferença de tempo
+      const atrasoMs =
+        dataEvento.getTime() - retirada.horario_programado.getTime();
 
-    if (!retirada) {
+      const atrasoMin = atrasoMs / 1000 / 60;
+
+      //Classificação inteligente do evento
+      let status: StatusRetirada;
+
+      if (atrasoMin <= 15) {
+        status = StatusRetirada.RETIRADO;
+      } else {
+        status = StatusRetirada.ATRASADO;
+      }
+
+      //Atualizar registro
+      await prisma.retiradaMedicamento.update({
+        where: {
+          id: retirada.id,
+        },
+        data: {
+          horario_retirada: dataEvento,
+          status,
+        },
+      });
 
       console.log(
-        "Nenhuma retirada pendente encontrada"
+        `Retirada ${retirada.id} registrada como ${status}`
       );
-
-      return;
-
+    } catch (error) {
+      console.error("Erro ao processar retirada:", error);
     }
-
-    // calcular atraso
-    const atrasoMs =
-      dataEvento.getTime() -
-      retirada.horario_programado.getTime();
-
-    const atrasoMin = atrasoMs / 1000 / 60;
-
-    const status =
-      atrasoMin <= 15
-        ? StatusRetirada.RETIRADO
-        : StatusRetirada.ATRASADO;
-
-    // atualizar retirada
-    await prisma.retiradaMedicamento.update({
-      where: {
-        id: retirada.id
-      },
-
-      data: {
-        horario_retirada: dataEvento,
-        status
-      }
-    });
-
-    console.log(
-      `Retirada ${retirada.id} registrada como ${status}`
-    );
-
   }
-
 }

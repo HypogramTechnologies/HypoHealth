@@ -1,12 +1,12 @@
-import { Router } from "express"
-import { usuarioController } from "../controllers/UsuarioController"
+import { Router } from "express";
+import { usuarioController } from "../controllers/UsuarioController";
 
-const router = Router()
+const router = Router();
 
-router.post("/", (req, res) => usuarioController.create(req, res))
-router.get("/", (req, res) => usuarioController.getAll(req, res))
-router.get("/:id", (req, res) => usuarioController.getByID(req, res))
-router.put("/:id", (req, res) => usuarioController.update(req, res))
-router.delete("/:id", (req, res) => usuarioController.delete(req, res))
+router.post("/", (req, res) => usuarioController.create(req, res));
+router.get("/", (req, res) => usuarioController.getAll(req, res));
+router.get("/:id", (req, res) => usuarioController.getByID(req, res));
+router.put("/:id", (req, res) => usuarioController.update(req, res));
+router.delete("/:id", (req, res) => usuarioController.delete(req, res));
 
-export default router
+export default router;

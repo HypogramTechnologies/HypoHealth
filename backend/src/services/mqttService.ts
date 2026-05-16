@@ -1,93 +1,56 @@
-import mqtt from "mqtt";
-import { MedicationIntakeService }
-from "./MedicationIntakeService";
+import mqtt, { MqttClient } from "mqtt";
+import { IMqttEvent } from "../types/IMqtt";
 
-const brokerUrl =
-  process.env.MQTT_URL || "mqtt://mqtt:1883";
+class MqttService {
+  private client: MqttClient | null = null;
 
-const medicationIntakeService =
-  new MedicationIntakeService();
+  private eventCallback:
+    | ((mac: string, payload: IMqttEvent) => void)
+    | null = null;
 
-export const connectMqtt = () => {
+  public connect() {
+    const brokerUrl = process.env.MQTT_URL || "mqtt://mqtt:1883";
 
-  const client = mqtt.connect(brokerUrl, {
-    username: process.env.MQTT_USER,
-    password: process.env.MQTT_PASS,
-  });
-
-  client.on("connect", () => {
-
-    console.log("Conectado ao broker MQTT");
-
-    client.subscribe("hypohealth/alertas", (err) => {
-
-      if (!err) {
-
-        console.log(
-          "Inscrito no tópico de alertas"
-        );
-
-      } else {
-
-        console.error(
-          "Erro ao se inscrever:",
-          err
-        );
-
-      }
-
+    this.client = mqtt.connect(brokerUrl, {
+      username: process.env.MQTT_USER,
+      password: process.env.MQTT_PASS,
     });
 
-  });
+    this.client.on("connect", () => {
+      console.log("[MQTT] Conectado");
 
-  client.on(
-    "message",
-    async (topic, message) => {
+      this.client?.subscribe("dispositivo/+/evento");
+    });
+
+    this.client.on("message", (topic, message) => {
+      const parts = topic.split("/");
+
+      if (parts.length !== 3) return;
+
+      const mac = parts[1];
 
       try {
+        const payload: IMqttEvent = JSON.parse(message.toString());
 
-        const payload = JSON.parse(
-          message.toString()
-        );
-
-        console.log(
-          `Mensagem recebida no tópico ${topic}:`,
-          payload
-        );
-
-        switch (payload.evento) {
-
-          case "MEDICAMENTO_RETIRADO":
-
-            await medicationIntakeService
-              .processarRetirada(payload);
-
-            break;
-
-          default:
-
-            console.log(
-              "Evento desconhecido"
-            );
-
-        }
-
-      } catch (error) {
-
-        console.error(
-          "Erro ao processar mensagem MQTT:",
-          error
-        );
-
+        this.eventCallback?.(mac, payload);
+      } catch (err) {
+        console.error("[MQTT] erro parse:", err);
       }
+    });
+  }
 
-    }
-  );
+  public onEventReceived(
+    callback: (mac: string, payload: IMqttEvent) => void,
+  ) {
+    this.eventCallback = callback;
+  }
 
-  client.on("error", (err) => {
+  public publishCommand(mac: string, payload: object) {
+    this.client?.publish(
+      `dispositivo/${mac}/comando`,
+      JSON.stringify(payload),
+    );
+  }
+}
 
-    console.error("Erro MQTT:", err);
-
-  });
-
-};
+export default new MqttService();

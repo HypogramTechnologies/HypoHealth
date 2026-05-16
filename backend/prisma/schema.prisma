@@ -127,6 +127,10 @@ model RetiradaMedicamento {
 
   criado_em                DateTime             @default(now())
 
+  atualizado_em           DateTime @updatedAt
+
+  dispositivo_evento_id   String?
+
   agendamentoHorario       AgendamentoHorario   @relation( fields: [agendamento_horario_id], references: [id],onDelete: Cascade)
 
   @@index([agendamento_horario_id])

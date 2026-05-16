@@ -3,6 +3,7 @@ import cors from "cors";
 import prisma from "./database/db";
 import routes from "./routes/index";
 import { connectMqtt } from "./services/mqttService";
+import { gerarRetiradasDoDia } from "./jobs/medicationScheduler";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -17,6 +18,8 @@ const start = async () => {
     await prisma.$connect();
 
     connectMqtt();
+
+    await gerarRetiradasDoDia();
 
     app.listen(PORT, () => {
       console.log(` Servidor rodando em http://localhost:${PORT}`);

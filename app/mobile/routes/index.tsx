@@ -6,11 +6,11 @@ import { AppStack } from '../navigation/appStack';
 import { AuthStack } from '../navigation/authStack'; 
 
 export function Routes() {
-  const { user } = useAuth();
+  const { usuario } = useAuth();
   
   return (
     <NavigationContainer>
-      {user ? <AppStack /> : <AuthStack />}
+      {usuario ? <AppStack /> : <AuthStack />}
     </NavigationContainer>
   );
 }

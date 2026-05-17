@@ -145,4 +145,97 @@ export class MedicAgendamentoQueryService {
       throw error;
     }
   }
+
+  // Buscar medicamentos do dia filtrado por usuário
+  async getMedicamentosDoDia(usuarioId: string) {
+    try {
+      const hoje = new Date();
+
+      const inicio = new Date(hoje);
+      inicio.setHours(0, 0, 0, 0);
+
+      const fim = new Date(hoje);
+      fim.setHours(23, 59, 59, 999);
+
+      const agendamentos = await prisma.agendamento.findMany({
+        where: {
+          compartimento: {
+            dispositivo: {
+              usuarios: {
+                some: {
+                  usuario: {
+                    id: usuarioId,
+                  },
+                },
+              },
+            },
+          },
+        },
+        include: {
+          medicamento: true,
+
+          compartimento: {
+            include: {
+              dispositivo: {
+                include: {
+                  usuarios: true,
+                },
+              },
+            },
+          },
+
+          horarios: {
+            include: {
+              retiradas: {
+                where: {
+                  horario_programado: {
+                    gte: inicio,
+                    lte: fim,
+                  },
+                },
+              },
+            },
+            orderBy: {
+              horario: "asc",
+            },
+          },
+        },
+      });
+
+      const resultado = agendamentos.map((agendamento) => {
+        return {
+          id: agendamento.id,
+          medicamento: {
+            id: agendamento.medicamento.id,
+            nome: agendamento.medicamento.nome,
+            dosagem: agendamento.medicamento.dosagem,
+          },
+
+          horarios: agendamento.horarios.map((h) => {
+            const retirada = h.retiradas[0];
+
+            let status: "PENDENTE" | "RETIRADO" | "ATRASADO" | "NAO_RETIRADO" =
+              retirada?.status ?? "PENDENTE";
+
+            const agora = new Date();
+
+            if (!retirada && new Date(h.horario) < agora) {
+              status = "ATRASADO";
+            }
+
+            return {
+              id: h.id,
+              horario: h.horario.toISOString().substring(11, 16),
+              status,
+              horario_retirada: retirada?.horario_retirada ?? null,
+            };
+          }),
+        };
+      });
+
+      return resultado;
+    } catch (error) {
+      throw error;
+    }
+  }
 }

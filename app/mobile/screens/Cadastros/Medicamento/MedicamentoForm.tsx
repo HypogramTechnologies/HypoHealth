@@ -1,53 +1,92 @@
 import React from 'react';
-import { Text } from 'react-native';
-import { Controller } from 'react-hook-form';
+
+import {
+  Text,
+} from 'react-native';
+
+import {
+  Controller,
+} from 'react-hook-form';
 
 import { Form } from '../../../components/Form/Form';
+
 import { InputField } from '../../../components/Form/InputField';
 
 import { useTheme } from '../../../contexts/Theme/themeContext';
+
 import { useStyles } from './styles';
 
 import { SelectCard } from '../../../components/MedicamentoForm/SelectCard';
+
 import { NumberSelector } from '../../../components/MedicamentoForm/NumberSelector';
+
 import { ActionButton } from '../../../components/MedicamentoForm/ActionButton';
+
 import { TimeField } from '../../../components/MedicamentoForm/TimeField';
 
 import { useMedicamentoForm } from '../../../hooks/Medicamento/useMedicamentoForm';
 
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+
 import { RootStackParamList } from '../../../navigation/types';
+
 import { Row } from '@/mobile/components/Form/Row';
 
-type Props = NativeStackScreenProps<
-  RootStackParamList,
-  'MedicamentoForm'
->;
+type Props =
+  NativeStackScreenProps<
+    RootStackParamList,
+    'MedicamentoForm'
+  >;
 
-export function MedicamentoForm({ route }: Props) {
-  const { mode, medicamentoId } = route.params;
-  console.log('MedicamentoForm renderizado com mode:', mode, 'e medicamentoId:', medicamentoId);
+export function MedicamentoForm({
+  route,
+}: Props) {
+  const {
+    mode,
+    medicamentoId,
+  } = route.params;
+
   const { theme } = useTheme();
+
   const s = useStyles(theme);
 
   const {
     control,
+
     handleSubmit,
+
     save,
+
     tipo,
+
     intervalo,
+
     compartimentos,
-    fields,
-    append,
-    remove,
+
+    compartimentosDisponiveis,
+
+    horarios,
+
+    addHorario,
+
+    removeHorario,
+
+    updateHorario,
+
     setValue,
+
     toggleCompartimento,
+
+    errors,
+
     screen,
-  } = useMedicamentoForm(mode, medicamentoId);
+  } = useMedicamentoForm(
+    mode,
+    medicamentoId,
+  );
 
   return (
     <Form loading={screen.loading}>
-  
       <Controller
         control={control}
         name="medicamentoNome"
@@ -56,7 +95,14 @@ export function MedicamentoForm({ route }: Props) {
             label="Nome do medicamento"
             placeholder="Losartana"
             value={field.value}
-            onChangeText={field.onChange}
+            onChangeText={
+              field.onChange
+            }
+            error={
+              errors
+                .medicamentoNome
+                ?.message
+            }
           />
         )}
       />
@@ -67,13 +113,19 @@ export function MedicamentoForm({ route }: Props) {
         render={({ field }) => (
           <InputField
             label="Descrição do medicamento"
-            placeholder="Dor de cabeça, pílula azul..."
+            placeholder="Dor de cabeça..."
             value={field.value}
-            onChangeText={field.onChange}
+            onChangeText={
+              field.onChange
+            }
+            error={
+              errors
+                .medicamentoDescricao
+                ?.message
+            }
           />
         )}
       />
-
 
       <Controller
         control={control}
@@ -83,93 +135,181 @@ export function MedicamentoForm({ route }: Props) {
             label="Dosagem"
             placeholder="50mg"
             value={field.value}
-            onChangeText={field.onChange}
+            onChangeText={
+              field.onChange
+            }
+            error={
+              errors
+                .medicamentoDosagem
+                ?.message
+            }
           />
         )}
       />
 
-      <Text style={s.section}>Compartimentos</Text>
+      <Text style={s.section}>
+        Compartimentos
+      </Text>
 
       <NumberSelector
-        values={[1, 2, 3, 4, 5, 6, 7]}
-        description={['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']}
+        values={compartimentosDisponiveis.map(
+          item => item.id,
+        )}
+        title={compartimentosDisponiveis.map(
+          item =>
+           String( item.posicao)
+        )}
+        description={compartimentosDisponiveis.map(
+          item =>
+            item.dia_semana
+        )}
         selected={compartimentos}
         multiple
-        onChange={toggleCompartimento}
+        onChange={
+          toggleCompartimento
+        }
       />
 
-    
-      <Text style={s.section}>Quando tomar</Text>
+      {errors.compartimentos && (
+        <Text style={s.error}>
+          {
+            errors
+              .compartimentos
+              .message
+          }
+        </Text>
+      )}
+
+      <Text style={s.section}>
+        Quando tomar
+      </Text>
 
       <Row>
         <SelectCard
-        title="Horário fixo"
-        subtitle="8h, 14h, 20h"
-        icon="time-outline"
-        active={tipo === 'HORARIO_FIXO'}
-        onPress={() => setValue('tipo', 'HORARIO_FIXO')}
-      />
+          title="Horário fixo"
+          subtitle="8h, 14h..."
+          icon="time-outline"
+          active={
+            tipo ===
+            'HORARIO_FIXO'
+          }
+          onPress={() =>
+            setValue(
+              'tipo',
+              'HORARIO_FIXO',
+            )
+          }
+        />
 
-      <SelectCard
-        title="De X em X horas"
-        subtitle="Ex: 8h"
-        icon="repeat-outline"
-        active={tipo === 'INTERVALO'}
-        onPress={() => setValue('tipo', 'INTERVALO')}
-      />
+        <SelectCard
+          title="De X em X horas"
+          subtitle="Ex: 8h"
+          icon="repeat-outline"
+          active={
+            tipo ===
+            'INTERVALO'
+          }
+          onPress={() =>
+            setValue(
+              'tipo',
+              'INTERVALO',
+            )
+          }
+        />
       </Row>
 
-    
-      {tipo === 'INTERVALO' && (
+      {tipo ===
+        'INTERVALO' && (
         <>
-          <Text style={s.section}>Intervalo</Text>
+          <Text style={s.section}>
+            Intervalo
+          </Text>
 
           <NumberSelector
-            values={[4, 6, 8, 12]}
-            selected={[intervalo || 8]}
-            onChange={(v) => setValue('intervalo_horas', v)}
+            values={[
+              4,
+              6,
+              8,
+              12,
+            ]}
+            selected={[
+              intervalo || 8,
+            ]}
+            onChange={v =>
+              setValue(
+                'intervalo_horas',
+                Number(v),
+              )
+            }
           />
         </>
       )}
 
-      {/* Horários */}
-      <Text style={s.section}>Horários</Text>
+      <Text style={s.section}>
+        Horários
+      </Text>
 
-      {fields.map((item, index) => (
-        <Controller
-          key={item.id}
-          control={control}
-          name={`horarios.${index}.hora`}
-          render={({ field }) => (
-            <TimeField
-              value={field.value}
-              onChange={field.onChange}
-              onRemove={
-                tipo === 'HORARIO_FIXO' && fields.length > 1
-                  ? () => remove(index)
-                  : undefined
-              }
-            />
-          )}
-        />
-      ))}
+      {horarios.map(
+        (hora, index) => (
+          <TimeField
+            key={index}
+            value={hora}
+            onChange={value =>
+              updateHorario(
+                index,
+                value,
+              )
+            }
+            onRemove={
+              tipo ===
+                'HORARIO_FIXO' &&
+              horarios.length > 1
+                ? () =>
+                    removeHorario(
+                      index,
+                    )
+                : undefined
+            }
+          />
+        ),
+      )}
 
-      {/* Adicionar horário */}
-      {tipo === 'HORARIO_FIXO' && (
+      {errors.horarios && (
+        <Text style={s.error}>
+          {
+            errors.horarios
+              .message
+          }
+        </Text>
+      )}
+
+      {tipo ===
+        'HORARIO_FIXO' && (
         <ActionButton
           title="Adicionar horário"
           icon="add"
           outlined
-          onPress={() => append({ hora: '12:00' })}
+          onPress={() =>
+            addHorario('12:00')
+          }
         />
       )}
 
-  
       <ActionButton
-      
-        title={mode === 'create' ? 'Salvar' : 'Atualizar'}
+        title={
+          mode === 'create'
+            ? 'Salvar'
+            : 'Atualizar'
+        }
         icon="save-outline"
-        onPress={handleSubmit(save)}
+        onPress={handleSubmit(
+          save,
+          errors =>
+            console.log(
+              "ERROS:",
+              errors,
+            ),
+      )}
       />
     </Form>
   );

@@ -1,76 +1,130 @@
-import { useForm, useFieldArray } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect } from 'react';
+import { useForm } from "react-hook-form";
 
-import { medicamentoSchema, MedicamentoFormData } from '../../schemas/medicamento.schema';
-import { MedicamentoService } from '../../services/medicamentoService';
-import { Mode } from '../../types/Outros/mode';
-import { useScreenMode } from '../Outros/useScreenMode';
+import { zodResolver } from "@hookform/resolvers/zod";
+
+import { useEffect, useState } from "react";
+
+import {
+  medicamentoSchema,
+  MedicamentoFormData,
+} from "../../schemas/medicamento.schema";
+
+import { MedicamentoService } from "../../services/medicamentoService";
+
+import { CompartimentoService } from "../../services/compartimentoService";
+
+import { Compartimento } from "../../types/Cadastros/compartimento";
+
+import { Mode } from "../../types/Outros/mode";
+
+import { useScreenMode } from "../Outros/useScreenMode";
 
 export function useMedicamentoForm(mode: Mode, medicamentoId?: string) {
   const screen = useScreenMode(mode);
+
   const { isCreate, setLoading } = screen;
+
+  const [compartimentosDisponiveis, setCompartimentosDisponiveis] = useState<
+    Compartimento[]
+  >([]);
 
   const form = useForm<MedicamentoFormData>({
     resolver: zodResolver(medicamentoSchema),
+
     defaultValues: {
-      medicamentoNome: '',
-      medicamentoDosagem: '',
-      medicamentoDescricao: '',
+      medicamentoNome: "",
+
+      medicamentoDosagem: "",
+
+      medicamentoDescricao: "",
+
       compartimentos: [],
-      tipo: 'HORARIO_FIXO',
+
+      tipo: "HORARIO_FIXO",
+
       intervalo_horas: 8,
-      horarios: [{ hora: '08:00' }],
+
+      horarios: ["08:00"],
     },
   });
 
-  const { control, handleSubmit, reset, setValue, watch } = form;
-
-  // FieldArray
-  const horariosArray = useFieldArray({
+  const {
     control,
-    name: 'horarios',
-  });
 
-  const { fields, append, remove, replace } = horariosArray;
+    handleSubmit,
 
-  // 🔹 Estados derivados
-  const tipo = watch('tipo');
-  const compartimentos = watch('compartimentos');
-  const intervalo = watch('intervalo_horas');
+    reset,
 
-  // 🔹 Regras de negócio
-  const toggleCompartimento = (value: number) => {
+    setValue,
+
+    watch,
+
+    formState: { errors },
+  } = form;
+
+  const tipo = watch("tipo");
+
+  const compartimentos = watch("compartimentos");
+
+  const intervalo = watch("intervalo_horas");
+
+  const horarios = watch("horarios");
+
+  const toggleCompartimento = (id: string | number) => {
+    const compartimentoId = String(id);
+
     const lista = compartimentos || [];
 
     setValue(
-      'compartimentos',
-      lista.includes(value)
-        ? lista.filter(x => x !== value)
-        : [...lista, value]
+      "compartimentos",
+
+      lista.includes(compartimentoId)
+        ? lista.filter((x) => x !== compartimentoId)
+        : [...lista, compartimentoId],
     );
   };
 
-  const gerarHorarios = (inicio = '08:00', h = 8) => {
-    const [hora, min] = inicio.split(':').map(Number);
+  const addHorario = (horario = "08:00") => {
+    setValue("horarios", [...horarios, horario]);
+  };
+
+  const removeHorario = (index: number) => {
+    setValue(
+      "horarios",
+
+      horarios.filter((_, i) => i !== index),
+    );
+  };
+
+  const updateHorario = (index: number, value: string) => {
+    const novaLista = [...horarios];
+
+    novaLista[index] = value;
+
+    setValue("horarios", novaLista);
+  };
+
+  const gerarHorarios = (inicio = "08:00", h = 8) => {
+    const [hora, min] = inicio.split(":").map(Number);
+
     const total = Math.floor(24 / h);
 
-    const lista = [];
+    const lista: string[] = [];
 
     for (let i = 0; i < total; i++) {
       const nova = (hora + i * h) % 24;
 
-      lista.push({
-        hora: `${String(nova).padStart(2, '0')}:${String(min).padStart(2, '0')}`,
-      });
+      lista.push(
+        `${String(nova).padStart(2, "0")}:${String(min).padStart(2, "0")}`,
+      );
     }
 
-    replace(lista);
+    setValue("horarios", lista);
   };
 
   useEffect(() => {
-    if (tipo === 'INTERVALO') {
-      gerarHorarios(fields[0]?.hora, intervalo);
+    if (tipo === "INTERVALO") {
+      gerarHorarios(horarios[0] || "08:00", intervalo);
     }
   }, [tipo, intervalo]);
 
@@ -78,15 +132,50 @@ export function useMedicamentoForm(mode: Mode, medicamentoId?: string) {
     setLoading(true);
 
     try {
-      if (isCreate) {
-        await MedicamentoService.create(data);
-      } else if (medicamentoId) {
-        await MedicamentoService.update(medicamentoId, data);
+      const primeiroHorario = data.horarios[0];
+
+      for (const compartimentoId of data.compartimentos) {
+        await MedicamentoService.create({
+          nome: data.medicamentoNome,
+
+          dosagem: data.medicamentoDosagem,
+
+          descricao: data.medicamentoDescricao,
+
+          compartimento_id: compartimentoId,
+
+          tipo: data.tipo,
+
+          data_inicio: new Date().toISOString(),
+
+          intervalo_horas: data.intervalo_horas,
+
+          horario: data.tipo === "INTERVALO" ? primeiroHorario : undefined,
+
+          horarios: data.tipo === "HORARIO_FIXO" ? data.horarios : undefined,
+        });
       }
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    const carregarCompartimentos = async () => {
+      try {
+        const dispositivoId = "bf909bc1-4110-454d-9ef5-eb9eb49db4e7";
+
+        const dados =
+          await CompartimentoService.getByDispositivo(dispositivoId);
+        console.log("COMPARTIMENTOS DISPONÍVEIS:", dados);
+        setCompartimentosDisponiveis(dados);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    carregarCompartimentos();
+  }, []);
 
   useEffect(() => {
     if (!medicamentoId || isCreate) return;
@@ -99,22 +188,34 @@ export function useMedicamentoForm(mode: Mode, medicamentoId?: string) {
   }, [medicamentoId, isCreate, reset, setLoading]);
 
   return {
-    
     control,
+
     handleSubmit,
+
     save,
 
     tipo,
+
     intervalo,
+
     compartimentos,
 
-    fields,
-    append,
-    remove,
+    compartimentosDisponiveis,
 
-  
+    horarios,
+
+    addHorario,
+
+    removeHorario,
+
+    updateHorario,
+
     setValue,
+
     toggleCompartimento,
-     screen,
+
+    errors,
+
+    screen,
   };
 }

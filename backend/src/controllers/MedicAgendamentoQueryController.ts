@@ -26,6 +26,7 @@ export class MedicAgendamentoQueryController {
   async getMedicamentoComAgendamentos(req: Request, res: Response) {
     try {
       const { id } = req.params as { id: string };
+      
 
       console.log(
         `[MedicAgendamentoQueryController] GET /medicamentos/${id}/completo`,

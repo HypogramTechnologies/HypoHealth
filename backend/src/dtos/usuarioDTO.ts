@@ -2,6 +2,7 @@ export interface CreateUsuarioDTO {
   nome: string;
   email: string;
   senha: string;
+  dispositivo_id: string;
 }
 
 export interface UpdateUsuarioDTO {

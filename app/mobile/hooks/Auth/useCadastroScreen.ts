@@ -14,6 +14,7 @@ export function useCadastroScreen() {
       email: "",
       senha: "",
       confirmarSenha: "",
+      dispositivo_id: "bf909bc1-4110-454d-9ef5-eb9eb49db4e7",
     },
   });
 

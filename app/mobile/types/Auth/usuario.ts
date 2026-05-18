@@ -1,12 +1,14 @@
 
-export type UserRole = 'aluno' | 'professor' | 'admin';
+
+export interface Dispositivo {
+  id: string;
+  tipo: string;
+}
 
 export interface Usuario {
-    usuarioId: string;
-    usuarioLogin?: string;
-    usuarioSenha?: string;
-    usuarioNome: string;
-    usuarioEmail?: string;
-    usuarioTelefone?: string;
-    usuarioRole: UserRole;
+  id: string;
+  nome: string;
+  email: string;
+  criado_em: string;
+  dispositivos?: Dispositivo[];
 }

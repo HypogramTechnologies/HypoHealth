@@ -10,6 +10,8 @@ export const cadastroSchema = z
       .string()
       .email("Email inválido"),
 
+      dispositivo_id: z.string().min(1, "Informe o dispositivo"),
+      
     senha: z
       .string()
       .min(6, "Senha deve ter pelo menos 6 caracteres"),

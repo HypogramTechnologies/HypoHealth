@@ -26,17 +26,22 @@ export default function CadastroScreen() {
         return;
       }
 
-      const response = await fetch("http://localhost:3000/api/auth/cadastro", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `${process.env.EXPO_PUBLIC_URL}:${process.env.EXPO_PUBLIC_PORT}/api/auth/cadastro`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            nome: data.nome,
+            email: data.email,
+            senha: data.senha,
+
+            dispositivo_id: data.dispositivo_id,
+          }),
         },
-        body: JSON.stringify({
-          nome: data.nome,
-          email: data.email,
-          senha: data.senha,
-        }),
-      });
+      );
 
       const result = await response.json();
 
@@ -100,6 +105,19 @@ export default function CadastroScreen() {
             value={field.value}
             onChangeText={field.onChange}
             error={errors.nome?.message}
+          />
+        )}
+      />
+
+      <Controller
+        control={control}
+        name="dispositivo_id"
+        render={({ field }) => (
+          <InputField
+            label="Código do dispositivo"
+            value={field.value}
+            onChangeText={field.onChange}
+            error={errors.dispositivo_id?.message}
           />
         )}
       />

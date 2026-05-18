@@ -1,5 +1,6 @@
 import { StyleSheet } from 'react-native';
 import { ThemeType } from '../../../contexts/Theme/themeContext';
+import { error } from 'node:console';
 
 export const useStyles = (theme: ThemeType) => {
     return StyleSheet.create({
@@ -35,6 +36,12 @@ export const useStyles = (theme: ThemeType) => {
         'center',
       alignItems:
         'center',
+    },
+
+    error: {
+      color:theme.colors.error,
+      marginTop: 4,
+      fontSize: 13,
     },
 
     numberBoxActive: {

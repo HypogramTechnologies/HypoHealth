@@ -11,7 +11,7 @@
 const char* ssid = "Gilson";
 const char* password = "Alpha0Delta";
 
-2
+
 //////////////////////////////////////////////////
 // MQTT
 //////////////////////////////////////////////////
@@ -260,6 +260,7 @@ void setup() {
   client.setCallback(callback);
 
   Serial.println("Sistema iniciado");
+  Serial.println(WiFi.macAddress());
 }
 
 //////////////////////////////////////////////////

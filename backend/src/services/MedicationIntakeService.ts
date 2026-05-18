@@ -31,6 +31,20 @@ export class MedicationIntakeService {
   //Chamado pelo server.ts quando o ESP32 retorna um evento
   async processarRetirada(payload: IMqttEvent, mac?: string) {
     try {
+      if (payload.evento !== "FECHAMENTO") {
+        console.log(
+          `[MedicationIntakeService] Evento ${payload.evento} recebido. Aguardando o FECHAMENTO para computar a retirada.`,
+        );
+        return; // Ignora ABERTURA ou outros estados para a atualização do status final
+      }
+
+      if (payload.status === "FALHA") {
+        console.log(
+          `[MedicationIntakeService] Dispositivo reportou falha na abertura: ${payload.mensagem}`,
+        );
+        return;
+      }
+
       // Trata o timestamp vindo do ESP32
       const dataEvento = !isNaN(Number(payload.timestamp))
         ? new Date(Number(payload.timestamp) * 1000)
@@ -83,13 +97,6 @@ export class MedicationIntakeService {
       if (!retirada) {
         console.log(
           `[MedicationIntakeService] Nenhuma retirada PENDENTE encontrada para o MAC ${mac} no compartimento ${payload.compartimento}`,
-        );
-        return;
-      }
-
-      if (payload.status === "FALHA") {
-        console.log(
-          `[MedicationIntakeService] Dispositivo reportou falha na abertura: ${payload.mensagem}`,
         );
         return;
       }

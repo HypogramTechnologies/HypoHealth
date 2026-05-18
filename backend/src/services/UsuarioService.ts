@@ -5,8 +5,7 @@ import {
   UsuarioResponseDTO,
 } from "../dtos/usuarioDTO";
 import prisma from "../database/db";
-
-const salt = 10;
+import { salt } from "../utils/salt";
 
 export class UsuarioService {
   async create(data: CreateUsuarioDTO): Promise<UsuarioResponseDTO> {

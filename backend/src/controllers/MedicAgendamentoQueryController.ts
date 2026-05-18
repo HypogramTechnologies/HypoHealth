@@ -94,6 +94,23 @@ export class MedicAgendamentoQueryController {
       });
     }
   }
+
+  //GET buscar medicamentos do dia
+  async getMedicamentosDoDia(req: Request, res: Response) {
+    try {
+      const { id } = req.params as { id: string };
+
+      const resultado =
+        await medicAgendamentoQueryService.getMedicamentosDoDia(id);
+
+      return res.status(200).json(resultado);
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({
+        erro: "Erro ao buscar medicamentos do dia.",
+      });
+    }
+  }
 }
 
 export const medicAgendamentoQueryController =

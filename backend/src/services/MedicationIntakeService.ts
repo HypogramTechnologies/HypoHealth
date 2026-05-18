@@ -46,7 +46,7 @@ export class MedicationIntakeService {
         console.log("Nenhuma retirada encontrada para o compartimento");
         return;
       }
-      
+
       //Calcular diferença de tempo
       const atrasoMs =
         dataEvento.getTime() - retirada.horario_programado.getTime();
@@ -73,9 +73,7 @@ export class MedicationIntakeService {
         },
       });
 
-      console.log(
-        `Retirada ${retirada.id} registrada como ${status}`
-      );
+      console.log(`Retirada ${retirada.id} registrada como ${status}`);
     } catch (error) {
       console.error("Erro ao processar retirada:", error);
     }

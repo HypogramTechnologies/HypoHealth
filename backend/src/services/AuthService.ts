@@ -30,7 +30,6 @@ export class AuthService {
   }
 
   async login(data: LoginDTO) {
-
     const usuario = await prisma.usuario.findUnique({
       where: {
         email: data.email,
@@ -41,10 +40,7 @@ export class AuthService {
       throw new Error("Email ou senha inválidos");
     }
 
-    const senhaValida = await bcrypt.compare(
-      data.senha,
-      usuario.senha,
-    );
+    const senhaValida = await bcrypt.compare(data.senha, usuario.senha);
 
     if (!senhaValida) {
       throw new Error("Email ou senha inválidos");

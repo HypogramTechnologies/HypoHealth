@@ -5,7 +5,6 @@ import { AuthService } from "../services/AuthService";
 const authService = new AuthService();
 
 export class AuthController {
-    
   async cadastrar(req: Request, res: Response) {
     try {
       const resultado = await authService.cadastrar(req.body);

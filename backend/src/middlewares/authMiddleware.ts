@@ -17,10 +17,7 @@ export function authMiddleware(
   const [, token] = authHeader.split(" ");
 
   try {
-    jwt.verify(
-      token,
-      process.env.JWT_SECRET as string,
-    );
+    jwt.verify(token, process.env.JWT_SECRET as string);
 
     next();
   } catch {

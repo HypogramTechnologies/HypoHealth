@@ -12,8 +12,7 @@ router.get("/:id/completo", (req, res) =>
   medicAgendamentoQueryController.getMedicamentoComAgendamentos(req, res),
 );
 
-router.get(
-  "/:id/hoje", authMiddleware,  (req, res) =>
+router.get("/:id/hoje", authMiddleware, (req, res) =>
   medicAgendamentoQueryController.getMedicamentosDoDia(req, res),
 );
 

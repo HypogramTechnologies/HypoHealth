@@ -6,6 +6,7 @@ import routes from "./routes/index";
 import mqttService from "./services/MqttService";
 import agendadorCronService from "./services/AgendadorCronService";
 import { MedicationIntakeService } from "./services/MedicationIntakeService";
+import { IMqttEvent } from "./types/IMqtt";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -22,7 +23,7 @@ const start = async () => {
 
     mqttService.connect();
 
-    mqttService.onEventReceived(async (mac, payload) => {
+    mqttService.onEventReceived(async (mac: string, payload: IMqttEvent) => {
       console.log(`Evento recebido do dispositivo ${mac}:`, payload);
 
       await medicationIntakeService.processarRetirada(payload, mac);

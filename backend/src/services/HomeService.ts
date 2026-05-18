@@ -10,26 +10,24 @@ export class HomeService {
     const fimDia = new Date();
     fimDia.setHours(23, 59, 59, 999);
 
-    const totalMedicamentosHoje =
-      await prisma.retiradaMedicamento.count({
-        where: {
-          horario_programado: {
-            gte: inicioDia,
-            lte: fimDia,
-          },
+    const totalMedicamentosHoje = await prisma.retiradaMedicamento.count({
+      where: {
+        horario_programado: {
+          gte: inicioDia,
+          lte: fimDia,
         },
-      });
+      },
+    });
 
-    const totalTomadosHoje =
-      await prisma.retiradaMedicamento.count({
-        where: {
-          horario_programado: {
-            gte: inicioDia,
-            lte: fimDia,
-          },
-          status: "RETIRADO",
+    const totalTomadosHoje = await prisma.retiradaMedicamento.count({
+      where: {
+        horario_programado: {
+          gte: inicioDia,
+          lte: fimDia,
         },
-      });
+        status: "RETIRADO",
+      },
+    });
 
     const dataAtual = new Intl.DateTimeFormat("pt-BR", {
       weekday: "long",

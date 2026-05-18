@@ -9,7 +9,6 @@ import { EXPIRES_IN } from "../utils/jwt";
 const usuarioService = new UsuarioService();
 
 export class AuthService {
-  
   async cadastrar(data: CreateUsuarioDTO) {
     const usuario = await usuarioService.create(data);
     const token = jwt.sign(
@@ -37,18 +36,18 @@ export class AuthService {
     // });
 
     const usuario = await prisma.usuario.findUnique({
-    where: {
-      email: data.email,
-    },
+      where: {
+        email: data.email,
+      },
 
-    include: {
-      dispositivos: {
-        include: {
-          dispositivo: true,
+      include: {
+        dispositivos: {
+          include: {
+            dispositivo: true,
+          },
         },
       },
-    },
-  });
+    });
 
     if (!usuario) {
       throw new Error("Email ou senha inválidos");
@@ -77,15 +76,11 @@ export class AuthService {
         nome: usuario.nome,
         email: usuario.email,
 
-        dispositivos:
-          usuario.dispositivos.map(
-            (item) => ({
-              id: item.dispositivo.id,
+        dispositivos: usuario.dispositivos.map((item) => ({
+          id: item.dispositivo.id,
 
-              tipo_acesso:
-                item.tipo_acesso,
-            }),
-          ),
+          tipo_acesso: item.tipo_acesso,
+        })),
       },
 
       token,

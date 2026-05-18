@@ -44,48 +44,41 @@ export class CompartimentoService {
 
   async getById(id: string) {
     try {
-      console.log(
-        `[CompartimentoService] Buscando compartimento ${id}`,
-      );
+      console.log(`[CompartimentoService] Buscando compartimento ${id}`);
 
-      const compartimento =
-        await prisma.compartimento.findUnique({
-          where: { id },
+      const compartimento = await prisma.compartimento.findUnique({
+        where: { id },
 
-          include: {
-            dispositivo: true,
+        include: {
+          dispositivo: true,
 
-            medicamentos: {
-              include: {
-                medicamento: true,
-              },
+          medicamentos: {
+            include: {
+              medicamento: true,
             },
+          },
 
-            agendamentos: {
-              include: {
-                medicamento: true,
+          agendamentos: {
+            include: {
+              medicamento: true,
 
-                horarios: {
-                  orderBy: {
-                    horario: "asc",
-                  },
+              horarios: {
+                orderBy: {
+                  horario: "asc",
                 },
               },
             },
           },
-        });
+        },
+      });
 
       if (!compartimento) {
-        console.log(
-          `[CompartimentoService] ⚠️ Compartimento não encontrado`,
-        );
+        console.log(`[CompartimentoService] ⚠️ Compartimento não encontrado`);
 
         return null;
       }
 
-      console.log(
-        `[CompartimentoService] ✅ Compartimento encontrado`,
-      );
+      console.log(`[CompartimentoService] ✅ Compartimento encontrado`);
 
       return compartimento;
     } catch (error) {

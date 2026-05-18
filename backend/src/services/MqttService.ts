@@ -51,7 +51,6 @@ class MqttService {
 
       try {
         const evento: IMqttEvent = JSON.parse(message);
-        //Chamar serviço para salvar o histórico e retirada do medicamento
         if (this.eventCallback) {
           this.eventCallback(macAddress, evento);
         }

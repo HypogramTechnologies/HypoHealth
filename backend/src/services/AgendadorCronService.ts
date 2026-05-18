@@ -4,6 +4,9 @@ import { DiaSemana } from "@prisma/client";
 import { DateTime } from "luxon";
 import mqttService from "./MqttService";
 import { IMqttCommand } from "../types/IMqtt";
+import { MedicationIntakeService } from "./MedicationIntakeService";
+
+const medicationIntakeService = new MedicationIntakeService();
 
 class AgendadorCronService {
   public iniciar() {
@@ -28,7 +31,7 @@ class AgendadorCronService {
       const diaSemanaAtual = diasMap[agora.weekday];
 
       console.log(
-        `[AgendamentoService] Verificando agendamentos de hoje (${diaSemanaAtual}) para o horário ${horarioAtual}`,
+        `[AgendamentoCronService] Verificando agendamentos de hoje (${diaSemanaAtual}) para o horário ${horarioAtual}`,
       );
 
       try {
@@ -60,7 +63,7 @@ class AgendadorCronService {
           const posicao = item.agendamento.compartimento.posicao;
 
           console.log(
-            `[AgendamentoService] Enviando comando para dispositivo ${macAddress} - Compartimento ${posicao}`,
+            `[AgendamentoCronService] Enviando comando para dispositivo ${macAddress} - Compartimento ${posicao}`,
           );
 
           const comando: IMqttCommand = {
@@ -72,13 +75,16 @@ class AgendadorCronService {
           mqttService.publishCommand(macAddress, comando);
 
           console.log(
-            `[AgendamentoService] Criando registro na tabela RetiradaMedicamento para o dispositivo ${macAddress} - Compartimento ${posicao}`,
+            `[AgendamentoCronService] Criando registro na tabela RetiradaMedicamento para o dispositivo ${macAddress} - Compartimento ${posicao}`,
           );
-          // Criar o registro na tabela RetiradaMedicamento como PENDENTE e na tabela de histórico
+          await medicationIntakeService.criarRegistroPendente(
+            item.id,
+            agora.toJSDate(),
+          );
         }
       } catch (error) {
         console.error(
-          `[AgendamentoService] Erro ao verificar agendamentos:`,
+          `[AgendamentoCronService] Erro ao verificar agendamentos:`,
           error,
         );
       }

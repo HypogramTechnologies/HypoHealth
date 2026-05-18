@@ -9,5 +9,4 @@ export interface Usuario {
     usuarioEmail?: string;
     usuarioTelefone?: string;
     usuarioRole: UserRole;
-
 }

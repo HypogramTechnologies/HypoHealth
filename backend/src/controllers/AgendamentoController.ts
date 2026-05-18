@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
-import prisma from "../database/db";
+import { AgendamentoService } from "../services/AgendamentoService";
+
+const agendamentoService = new AgendamentoService();
 
 export class AgendamentoController {
   async create(req: Request, res: Response) {
@@ -9,28 +11,24 @@ export class AgendamentoController {
         compartimento_id,
         tipo,
         data_inicio,
-        data_fim,
-        intervalo_horas,
+        horario,
+        horarios,
       } = req.body;
 
-      // Validação dos campos obrigatórios
       if (!medicamento_id || !compartimento_id || !tipo || !data_inicio) {
         return res.status(400).json({
           erro: "medicamento_id, compartimento_id, tipo e data_inicio são obrigatórios.",
         });
       }
 
-      const novoAgendamento = await prisma.agendamento.create({
-        data: {
-          medicamento_id,
-          compartimento_id,
-          tipo,
-          data_inicio: new Date(data_inicio), // Convertendo para Date para garantir a tipagem do Prisma
-          data_fim: data_fim ? new Date(data_fim) : null,
-          intervalo_horas,
-        },
-      });
+      // Validar que ao menos um horário foi fornecido
+      if (!horario && (!horarios || horarios.length === 0)) {
+        return res.status(400).json({
+          erro: "Forneça pelo menos um horário (horario ou horarios).",
+        });
+      }
 
+      const novoAgendamento = await agendamentoService.create(req.body);
       return res.status(201).json(novoAgendamento);
     } catch (error) {
       console.error(error);
@@ -40,13 +38,7 @@ export class AgendamentoController {
 
   async getAll(req: Request, res: Response) {
     try {
-      const agendamentos = await prisma.agendamento.findMany({
-        include: {
-          medicamento: true,
-          compartimento: true,
-          horarios: true, // Traz os horários específicos vinculados a este agendamento
-        },
-      });
+      const agendamentos = await agendamentoService.getAll();
       return res.status(200).json(agendamentos);
     } catch (error) {
       console.error(error);
@@ -57,14 +49,7 @@ export class AgendamentoController {
   async getById(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const agendamento = await prisma.agendamento.findUnique({
-        where: { id: String(id) },
-        include: {
-          medicamento: true,
-          compartimento: true,
-          horarios: true,
-        },
-      });
+      const agendamento = await agendamentoService.getById(String(id));
 
       if (!agendamento) {
         return res.status(404).json({ erro: "Agendamento não encontrado." });
@@ -80,35 +65,15 @@ export class AgendamentoController {
   async update(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const {
-        medicamento_id,
-        compartimento_id,
-        tipo,
-        data_inicio,
-        data_fim,
-        intervalo_horas,
-      } = req.body;
-
-      const agendamentoAtualizado = await prisma.agendamento.update({
-        where: { id: String(id) },
-        data: {
-          medicamento_id,
-          compartimento_id,
-          tipo,
-          // Atualiza as datas apenas se elas vierem no body da requisição
-          ...(data_inicio && { data_inicio: new Date(data_inicio) }),
-          ...(data_fim !== undefined && {
-            data_fim: data_fim ? new Date(data_fim) : null,
-          }),
-          intervalo_horas,
-        },
-      });
-
+      const agendamentoAtualizado = await agendamentoService.update(
+        String(id),
+        req.body,
+      );
       return res.status(200).json(agendamentoAtualizado);
     } catch (error) {
       console.error(error);
       return res.status(500).json({
-        erro: "Erro ao atualizar agendamento. Verifique se o ID existe e se os IDs de relação são válidos.",
+        erro: "Erro ao atualizar agendamento. Verifique se o ID existe.",
       });
     }
   }
@@ -116,9 +81,7 @@ export class AgendamentoController {
   async delete(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      await prisma.agendamento.delete({
-        where: { id: String(id) },
-      });
+      await agendamentoService.delete(String(id));
       return res.status(204).send();
     } catch (error) {
       console.error(error);

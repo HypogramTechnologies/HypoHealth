@@ -1,89 +1,146 @@
-import cron from "node-cron";
 import prisma from "../database/db";
-import { DiaSemana } from "@prisma/client";
-import { DateTime } from "luxon";
-import mqttService from "./MqttService";
-import { IMqttCommand } from "../types/IMqtt";
+import { AgendamentoHorarioService } from "./AgendamentoHorarioService";
 
-class AgendamentoService {
-  public iniciar() {
-    //Roda a cada minuto
-    cron.schedule("* * * * *", async () => {
-      //Usando o luxon para pegar a hora atual no fuso de São Paulo, já que o servidor hospedado no Render está em outro fuso
-      const agora = DateTime.now().setZone("America/Sao_Paulo");
-      const horaAtual = agora.hour.toString().padStart(2, "0");
-      const minutoAtual = agora.minute.toString().padStart(2, "0");
-      const horarioAtual = `${horaAtual}:${minutoAtual}:00`;
+const horarioService = new AgendamentoHorarioService();
 
-      const diasMap: Record<number, string> = {
-        1: "SEGUNDA",
-        2: "TERCA",
-        3: "QUARTA",
-        4: "QUINTA",
-        5: "SEXTA",
-        6: "SABADO",
-        7: "DOMINGO",
-      };
+export class AgendamentoService {
+  async create(dados: any, tx?: any) {
+    const db = tx || prisma;
+    const { horario, horarios, ...restoDados } = dados;
 
-      const diaSemanaAtual = diasMap[agora.weekday];
-
+    try {
       console.log(
-        `[AgendamentoService] Verificando agendamentos de hoje (${diaSemanaAtual}) para o horário ${horarioAtual}`,
+        `[AgendamentoService] Criando agendamento com dados:`,
+        restoDados,
       );
 
-      try {
-        const agendamentos = await prisma.agendamentoHorario.findMany({
-          where: {
-            horario: { equals: new Date(`1970-01-01T${horarioAtual}Z`) }, // Comparar apenas a hora e minuto
-            agendamento: {
-              compartimento: {
-                dia_semana: diaSemanaAtual as DiaSemana,
-              },
-            }, // Garantir que o agendamento é para o dia da semana atual
-          },
-          include: {
-            agendamento: {
-              include: {
-                compartimento: {
-                  include: {
-                    dispositivo: true,
-                  },
-                },
-              },
-            },
-          },
-        });
+      const agendamento = await db.agendamento.create({
+        data: {
+          ...restoDados,
+          data_inicio: new Date(restoDados.data_inicio),
+          data_fim: restoDados.data_fim ? new Date(restoDados.data_fim) : null,
+        },
+      });
 
-        for (const item of agendamentos) {
-          const macAddress =
-            item.agendamento.compartimento.dispositivo.numero_serie;
-          const posicao = item.agendamento.compartimento.posicao;
+      console.log(
+        `[AgendamentoService] ✅ Agendamento criado com ID: ${agendamento.id}`,
+      );
 
-          console.log(
-            `[AgendamentoService] Enviando comando para dispositivo ${macAddress} - Compartimento ${posicao}`,
-          );
-
-          const comando: IMqttCommand = {
-            acao: "ABRIR",
-            compartimento: posicao,
-            timestamp: agora.toUTC().toFormat("yyyy-MM-dd'T'HH:mm:ss'Z'"),
-          };
-
-          mqttService.publishCommand(macAddress, comando);
-
-          console.log(
-            `[AgendamentoService] Criando registro na tabela RetiradaMedicamento para o dispositivo ${macAddress} - Compartimento ${posicao}`,
-          );
-          // Criar o registro na tabela RetiradaMedicamento como PENDENTE e na tabela de histórico
-        }
-      } catch (error) {
-        console.error(
-          `[AgendamentoService] Erro ao verificar agendamentos:`,
-          error,
+      // Criar horário(s) se fornecido(s)
+      if (horario) {
+        console.log(`[AgendamentoService] Criando horário único: ${horario}`);
+        await horarioService.create(agendamento.id, horario, tx);
+      } else if (horarios && Array.isArray(horarios) && horarios.length > 0) {
+        console.log(
+          `[AgendamentoService] Criando múltiplos horários:`,
+          horarios,
         );
+        await horarioService.createMultiple(agendamento.id, horarios, tx);
+      } else {
+        console.log(`[AgendamentoService] ⚠️ Nenhum horário fornecido`);
       }
+
+      return agendamento;
+    } catch (error) {
+      console.error(
+        `[AgendamentoService] ❌ Erro ao criar agendamento:`,
+        error,
+      );
+      throw error;
+    }
+  }
+
+  async getAll() {
+    return await prisma.agendamento.findMany({
+      include: {
+        medicamento: true,
+        compartimento: true,
+        horarios: {
+          orderBy: { horario: "asc" },
+        },
+      },
     });
   }
-}
 
-export default new AgendamentoService();
+  async getById(id: string) {
+    return await prisma.agendamento.findUnique({
+      where: { id },
+      include: {
+        medicamento: true,
+        compartimento: true,
+        horarios: {
+          orderBy: { horario: "asc" },
+        },
+      },
+    });
+  }
+
+  async update(id: string, dados: any) {
+    const { horario, horarios, ...restoDados } = dados;
+
+    try {
+      console.log(`[AgendamentoService] Atualizando agendamento ${id}`);
+
+      const agendamento = await prisma.agendamento.update({
+        where: { id },
+        data: {
+          ...restoDados,
+          ...(restoDados.data_inicio && {
+            data_inicio: new Date(restoDados.data_inicio),
+          }),
+          ...(restoDados.data_fim !== undefined && {
+            data_fim: restoDados.data_fim
+              ? new Date(restoDados.data_fim)
+              : null,
+          }),
+        },
+      });
+
+      // Se novos horários foram fornecidos, deletar os antigos e criar novos
+      if (
+        horario ||
+        (horarios && Array.isArray(horarios) && horarios.length > 0)
+      ) {
+        console.log(`[AgendamentoService] Deletando horários antigos...`);
+        await horarioService.deleteByAgendamentoId(id);
+
+        if (horario) {
+          console.log(`[AgendamentoService] Criando novo horário: ${horario}`);
+          await horarioService.create(id, horario);
+        } else if (horarios && Array.isArray(horarios)) {
+          console.log(`[AgendamentoService] Criando novos horários:`, horarios);
+          await horarioService.createMultiple(id, horarios);
+        }
+      }
+
+      console.log(`[AgendamentoService] ✅ Agendamento atualizado com sucesso`);
+      return agendamento;
+    } catch (error) {
+      console.error(
+        `[AgendamentoService] ❌ Erro ao atualizar agendamento:`,
+        error,
+      );
+      throw error;
+    }
+  }
+
+  async delete(id: string) {
+    try {
+      console.log(`[AgendamentoService] Deletando agendamento ${id}`);
+
+      // Deletar horários associados (cascade)
+      await horarioService.deleteByAgendamentoId(id);
+
+      const resultado = await prisma.agendamento.delete({ where: { id } });
+
+      console.log(`[AgendamentoService] ✅ Agendamento deletado com sucesso`);
+      return resultado;
+    } catch (error) {
+      console.error(
+        `[AgendamentoService] ❌ Erro ao deletar agendamento:`,
+        error,
+      );
+      throw error;
+    }
+  }
+}

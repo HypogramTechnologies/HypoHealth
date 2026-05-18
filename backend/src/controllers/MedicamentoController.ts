@@ -6,7 +6,7 @@ export class MedicamentoController {
     try {
       const { nome, dosagem, descricao } = req.body;
 
-      if (!nome || !dosagem || !descricao) {
+      if (!nome || !dosagem) {
         return res
           .status(400)
           .json({ erro: "Nome e dosagem são obrigatórios." });

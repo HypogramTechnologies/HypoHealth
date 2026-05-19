@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import prisma from "../database/db";
 import { MedicamentoService } from "../services/MedicamentoService";
 import { AgendamentoService } from "../services/AgendamentoService";
+import { logger } from "../utils/logger";
 
 const medicService = new MedicamentoService();
 const agendamentoService = new AgendamentoService();
@@ -58,7 +59,9 @@ export class MedicAgendamentoController {
 
       return res.status(201).json(resultado);
     } catch (error) {
-      console.error(error);
+      logger.error(
+        `[MedicAgendamentoController] Erro na operação simultânea: ${String(error)}`,
+      );
       return res.status(500).json({ erro: "Erro na operação simultânea." });
     }
   }

@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { MedicAgendamentoQueryService } from "../services/MedicAgendamentoQueryService";
+import { logger } from "../utils/logger";
 
 const medicAgendamentoQueryService = new MedicAgendamentoQueryService();
 
@@ -7,15 +8,13 @@ export class MedicAgendamentoQueryController {
   // GET todos os medicamentos com agendamentos
   async getAllMedicamentosComAgendamentos(req: Request, res: Response) {
     try {
-      console.log(
-        `[MedicAgendamentoQueryController] GET /medicamentos/completos`,
-      );
-
       const medicamentos = await medicAgendamentoQueryService.getAllCompleto();
 
       return res.status(200).json(medicamentos);
     } catch (error) {
-      console.error(error);
+      logger.error(
+        `[MedicAgendamentoQueryController] Erro ao buscar medicamentos completos: ${String(error)}`,
+      );
       return res.status(500).json({
         erro: "Erro ao buscar medicamentos com agendamentos.",
       });
@@ -26,10 +25,6 @@ export class MedicAgendamentoQueryController {
   async getMedicamentoComAgendamentos(req: Request, res: Response) {
     try {
       const { id } = req.params as { id: string };
-
-      console.log(
-        `[MedicAgendamentoQueryController] GET /medicamentos/${id}/completo`,
-      );
 
       const medicamento =
         await medicAgendamentoQueryService.getByIdCompleto(id);
@@ -42,7 +37,9 @@ export class MedicAgendamentoQueryController {
 
       return res.status(200).json(medicamento);
     } catch (error) {
-      console.error(error);
+      logger.error(
+        `[MedicAgendamentoQueryController] Erro ao buscar medicamento completo: ${String(error)}`,
+      );
       return res.status(500).json({
         erro: "Erro ao buscar medicamento com agendamentos.",
       });
@@ -52,16 +49,14 @@ export class MedicAgendamentoQueryController {
   // GET todos os agendamentos com medicamentos e horários
   async getAllAgendamentosCompletos(req: Request, res: Response) {
     try {
-      console.log(
-        `[MedicAgendamentoQueryController] GET /agendamentos/completos`,
-      );
-
       const agendamentos =
         await medicAgendamentoQueryService.getAllAgendamentosCompleto();
 
       return res.status(200).json(agendamentos);
     } catch (error) {
-      console.error(error);
+      logger.error(
+        `[MedicAgendamentoQueryController] Erro ao buscar agendamentos completos: ${String(error)}`,
+      );
       return res.status(500).json({
         erro: "Erro ao buscar agendamentos completos.",
       });
@@ -72,10 +67,6 @@ export class MedicAgendamentoQueryController {
   async getAgendamentoCompleto(req: Request, res: Response) {
     try {
       const { id } = req.params as { id: string };
-
-      console.log(
-        `[MedicAgendamentoQueryController] GET /agendamentos/${id}/completo`,
-      );
 
       const agendamento =
         await medicAgendamentoQueryService.getAgendamentoCompleto(id);
@@ -88,7 +79,9 @@ export class MedicAgendamentoQueryController {
 
       return res.status(200).json(agendamento);
     } catch (error) {
-      console.error(error);
+      logger.error(
+        `[MedicAgendamentoQueryController] Erro ao buscar agendamento completo: ${String(error)}`,
+      );
       return res.status(500).json({
         erro: "Erro ao buscar agendamento completo.",
       });
@@ -105,7 +98,9 @@ export class MedicAgendamentoQueryController {
 
       return res.status(200).json(resultado);
     } catch (error) {
-      console.error(error);
+      logger.error(
+        `[MedicAgendamentoQueryController] Erro ao buscar medicamentos do dia: ${String(error)}`,
+      );
       return res.status(500).json({
         erro: "Erro ao buscar medicamentos do dia.",
       });

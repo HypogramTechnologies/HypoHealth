@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 
 import { CompartimentoService } from "../services/CompartimentoService";
+import { logger } from "../utils/logger";
 
 const compartimentoService = new CompartimentoService();
 
@@ -10,10 +11,6 @@ export class CompartimentoController {
       const { dispositivoId } = req.params as {
         dispositivoId: string;
       };
-
-      console.log(
-        `[CompartimentoController] GET /compartimentos/dispositivo/${dispositivoId}`,
-      );
 
       if (!dispositivoId) {
         return res.status(400).json({
@@ -26,7 +23,9 @@ export class CompartimentoController {
 
       return res.status(200).json(compartimentos);
     } catch (error) {
-      console.error(error);
+      logger.error(
+        `[CompartimentoController] Erro ao buscar compartimentos por dispositivo: ${String(error)}`,
+      );
 
       return res.status(500).json({
         erro: "Erro ao buscar compartimentos.",
@@ -40,8 +39,6 @@ export class CompartimentoController {
         id: string;
       };
 
-      console.log(`[CompartimentoController] GET /compartimentos/${id}`);
-
       const compartimento = await compartimentoService.getById(id);
 
       if (!compartimento) {
@@ -52,7 +49,9 @@ export class CompartimentoController {
 
       return res.status(200).json(compartimento);
     } catch (error) {
-      console.error(error);
+      logger.error(
+        `[CompartimentoController] Erro ao buscar compartimento por id: ${String(error)}`,
+      );
 
       return res.status(500).json({
         erro: "Erro ao buscar compartimento.",

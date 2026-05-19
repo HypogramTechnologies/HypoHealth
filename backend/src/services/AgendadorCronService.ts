@@ -5,6 +5,7 @@ import { DateTime } from "luxon";
 import mqttService from "./MqttService";
 import { IMqttCommand } from "../types/IMqtt";
 import { MedicationIntakeService } from "./MedicationIntakeService";
+import { logger } from "../utils/logger";
 
 const medicationIntakeService = new MedicationIntakeService();
 
@@ -29,10 +30,6 @@ class AgendadorCronService {
       };
 
       const diaSemanaAtual = diasMap[agora.weekday];
-
-      console.log(
-        `[AgendamentoCronService] Verificando agendamentos de hoje (${diaSemanaAtual}) para o horário ${horarioAtual}`,
-      );
 
       try {
         const agendamentos = await prisma.agendamentoHorario.findMany({
@@ -62,10 +59,6 @@ class AgendadorCronService {
             item.agendamento.compartimento.dispositivo.numero_serie;
           const posicao = item.agendamento.compartimento.posicao;
 
-          console.log(
-            `[AgendamentoCronService] Enviando comando para dispositivo ${macAddress} - Compartimento ${posicao}`,
-          );
-
           const comando: IMqttCommand = {
             acao: "ABRIR",
             compartimento: posicao,
@@ -73,19 +66,14 @@ class AgendadorCronService {
           };
 
           mqttService.publishCommand(macAddress, comando);
-
-          console.log(
-            `[AgendamentoCronService] Criando registro na tabela RetiradaMedicamento para o dispositivo ${macAddress} - Compartimento ${posicao}`,
-          );
           await medicationIntakeService.criarRegistroPendente(
             item.id,
             agora.toJSDate(),
           );
         }
       } catch (error) {
-        console.error(
-          `[AgendamentoCronService] Erro ao verificar agendamentos:`,
-          error,
+        logger.error(
+          `[AgendamentoCronService] Erro ao verificar agendamentos: ${String(error)}`,
         );
       }
     });

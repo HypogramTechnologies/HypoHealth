@@ -11,7 +11,6 @@ const usuarioService = new UsuarioService();
 export class AuthService {
   async cadastrar(data: CreateUsuarioDTO) {
     const usuario = await usuarioService.create(data);
-
     const token = jwt.sign(
       {
         id: usuario.id,
@@ -30,9 +29,23 @@ export class AuthService {
   }
 
   async login(data: LoginDTO) {
+    // const usuario = await prisma.usuario.findUnique({
+    //   where: {
+    //     email: data.email,
+    //   },
+    // });
+
     const usuario = await prisma.usuario.findUnique({
       where: {
         email: data.email,
+      },
+
+      include: {
+        dispositivos: {
+          include: {
+            dispositivo: true,
+          },
+        },
       },
     });
 
@@ -62,7 +75,14 @@ export class AuthService {
         id: usuario.id,
         nome: usuario.nome,
         email: usuario.email,
+
+        dispositivos: usuario.dispositivos.map((item) => ({
+          id: item.dispositivo.id,
+
+          tipo_acesso: item.tipo_acesso,
+        })),
       },
+
       token,
     };
   }

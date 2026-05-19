@@ -1,120 +1,544 @@
-import { useForm, useFieldArray } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect } from 'react';
+import { useForm } from "react-hook-form";
 
-import { medicamentoSchema, MedicamentoFormData } from '../../schemas/medicamento.schema';
-import { MedicamentoService } from '../../services/medicamentoService';
-import { Mode } from '../../types/Outros/mode';
-import { useScreenMode } from '../Outros/useScreenMode';
+import { zodResolver } from "@hookform/resolvers/zod";
 
-export function useMedicamentoForm(mode: Mode, medicamentoId?: string) {
+import { useEffect, useState } from "react";
+
+import {
+  medicamentoSchema,
+  MedicamentoFormData,
+} from "../../schemas/medicamento.schema";
+
+import { MedicamentoService } from "../../services/medicamentoAgendamentoService";
+
+import { CompartimentoService } from "../../services/compartimentoService";
+
+import { Compartimento } from "../../types/Cadastros/compartimento";
+
+import { Mode } from "../../types/Outros/mode";
+
+import { useScreenMode } from "../Outros/useScreenMode";
+
+import { useAuth } from "../Auth/useAuth";
+
+export function useMedicamentoForm(
+  mode: Mode,
+  medicamentoId?: string,
+) {
+  console.log(
+    "HOOK useMedicamentoForm INICIADO",
+  );
+
+  console.log("MODE:", mode);
+
+  console.log(
+    "MEDICAMENTO ID:",
+    medicamentoId,
+  );
+
   const screen = useScreenMode(mode);
-  const { isCreate, setLoading } = screen;
 
-  const form = useForm<MedicamentoFormData>({
-    resolver: zodResolver(medicamentoSchema),
-    defaultValues: {
-      medicamentoNome: '',
-      medicamentoDosagem: '',
-      medicamentoDescricao: '',
-      compartimentos: [],
-      tipo: 'HORARIO_FIXO',
-      intervalo_horas: 8,
-      horarios: [{ hora: '08:00' }],
-    },
-  });
+  const { usuario } = useAuth();
 
-  const { control, handleSubmit, reset, setValue, watch } = form;
+  console.log("USUARIO:", usuario);
 
-  // FieldArray
-  const horariosArray = useFieldArray({
+  const {
+    isCreate,
+    setLoading,
+  } = screen;
+
+  const [
+    compartimentosDisponiveis,
+    setCompartimentosDisponiveis,
+  ] = useState<Compartimento[]>([]);
+
+  const form =
+    useForm<MedicamentoFormData>({
+      resolver: zodResolver(
+        medicamentoSchema,
+      ),
+
+      defaultValues: {
+        medicamentoNome: "",
+
+        medicamentoDosagem: "",
+
+        medicamentoDescricao: "",
+
+        compartimentos: [],
+
+        tipo: "HORARIO_FIXO",
+
+        intervalo_horas: 8,
+
+        horarios: ["08:00"],
+      },
+    });
+
+  const {
     control,
-    name: 'horarios',
-  });
+    handleSubmit,
+    reset,
+    setValue,
+    watch,
 
-  const { fields, append, remove, replace } = horariosArray;
+    formState: { errors },
+  } = form;
 
-  // 🔹 Estados derivados
-  const tipo = watch('tipo');
-  const compartimentos = watch('compartimentos');
-  const intervalo = watch('intervalo_horas');
+  const tipo = watch("tipo");
 
-  // 🔹 Regras de negócio
-  const toggleCompartimento = (value: number) => {
-    const lista = compartimentos || [];
+  const compartimentos =
+    watch("compartimentos");
+
+  const intervalo = watch(
+    "intervalo_horas",
+  );
+
+  const horarios = watch("horarios");
+
+  console.log("TIPO:", tipo);
+
+  console.log(
+    "COMPARTIMENTOS:",
+    compartimentos,
+  );
+
+  console.log("HORARIOS:", horarios);
+
+  const toggleCompartimento = (
+    id: string | number,
+  ) => {
+    console.log(
+      "TOGGLE COMPARTIMENTO:",
+      id,
+    );
+
+    const compartimentoId =
+      String(id);
+
+    const lista =
+      compartimentos || [];
 
     setValue(
-      'compartimentos',
-      lista.includes(value)
-        ? lista.filter(x => x !== value)
-        : [...lista, value]
+      "compartimentos",
+
+      lista.includes(
+        compartimentoId,
+      )
+        ? lista.filter(
+            x =>
+              x !==
+              compartimentoId,
+          )
+        : [
+            ...lista,
+            compartimentoId,
+          ],
     );
   };
 
-  const gerarHorarios = (inicio = '08:00', h = 8) => {
-    const [hora, min] = inicio.split(':').map(Number);
-    const total = Math.floor(24 / h);
+  const addHorario = (
+    horario = "08:00",
+  ) => {
+    console.log(
+      "ADICIONANDO HORARIO:",
+      horario,
+    );
 
-    const lista = [];
+    setValue("horarios", [
+      ...horarios,
+      horario,
+    ]);
+  };
 
-    for (let i = 0; i < total; i++) {
-      const nova = (hora + i * h) % 24;
+  const removeHorario = (
+    index: number,
+  ) => {
+    console.log(
+      "REMOVENDO HORARIO:",
+      index,
+    );
 
-      lista.push({
-        hora: `${String(nova).padStart(2, '0')}:${String(min).padStart(2, '0')}`,
-      });
+    setValue(
+      "horarios",
+
+      horarios.filter(
+        (_, i) => i !== index,
+      ),
+    );
+  };
+
+  const updateHorario = (
+    index: number,
+    value: string,
+  ) => {
+    console.log(
+      "ATUALIZANDO HORARIO:",
+      {
+        index,
+        value,
+      },
+    );
+
+    const novaLista = [...horarios];
+
+    novaLista[index] = value;
+
+    setValue(
+      "horarios",
+      novaLista,
+    );
+  };
+
+  const gerarHorarios = (
+    inicio = "08:00",
+    h = 8,
+  ) => {
+    console.log(
+      "GERANDO HORARIOS:",
+      {
+        inicio,
+        h,
+      },
+    );
+
+    const [hora, min] = inicio
+      .split(":")
+      .map(Number);
+
+    const total = Math.floor(
+      24 / h,
+    );
+
+    const lista: string[] = [];
+
+    for (
+      let i = 0;
+      i < total;
+      i++
+    ) {
+      const nova =
+        (hora + i * h) % 24;
+
+      lista.push(
+        `${String(nova).padStart(2, "0")}:${String(min).padStart(2, "0")}`,
+      );
     }
 
-    replace(lista);
+    console.log(
+      "HORARIOS GERADOS:",
+      lista,
+    );
+
+    setValue("horarios", lista);
   };
 
   useEffect(() => {
-    if (tipo === 'INTERVALO') {
-      gerarHorarios(fields[0]?.hora, intervalo);
+    console.log(
+      "EFFECT TIPO/INTERVALO",
+    );
+
+    if (tipo === "INTERVALO") {
+      gerarHorarios(
+        horarios[0] || "08:00",
+        intervalo,
+      );
     }
   }, [tipo, intervalo]);
 
-  const save = async (data: MedicamentoFormData) => {
-    setLoading(true);
+  const save = async (
+  data: MedicamentoFormData,
+) => {
+  setLoading(true);
 
-    try {
-      if (isCreate) {
-        await MedicamentoService.create(data);
-      } else if (medicamentoId) {
-        await MedicamentoService.update(medicamentoId, data);
+  try {
+    const primeiroHorario =
+      data.horarios[0];
+
+    if (mode === "create") {
+      for (const compartimentoId of data.compartimentos) {
+
+        const payload = {
+          nome:
+            data.medicamentoNome,
+
+          dosagem:
+            data.medicamentoDosagem,
+
+          descricao:
+            data.medicamentoDescricao,
+
+          compartimento_id:
+            compartimentoId,
+
+          tipo: data.tipo,
+
+          data_inicio:
+            new Date().toISOString(),
+
+          intervalo_horas:
+            data.intervalo_horas,
+
+          horario:
+            data.tipo ===
+            "INTERVALO"
+              ? primeiroHorario
+              : undefined,
+
+          horarios:
+            data.tipo ===
+            "HORARIO_FIXO"
+              ? data.horarios
+              : undefined,
+        };
+
+        console.log(
+          "BODY POST:",
+          payload,
+        );
+
+        await MedicamentoService.create(
+          payload,
+        );
       }
-    } finally {
-      setLoading(false);
+    } else if (medicamentoId) {
+
+      const payload = {
+        nome:
+          data.medicamentoNome,
+
+        dosagem:
+          data.medicamentoDosagem,
+
+        descricao:
+          data.medicamentoDescricao,
+
+        tipo: data.tipo,
+
+        intervalo_horas:
+          data.intervalo_horas,
+
+        horario:
+          data.tipo ===
+          "INTERVALO"
+            ? primeiroHorario
+            : undefined,
+
+        horarios:
+          data.tipo ===
+          "HORARIO_FIXO"
+            ? data.horarios
+            : undefined,
+      };
+
+      console.log(
+        "BODY UPDATE:",
+        payload,
+      );
+
+      await MedicamentoService.update(
+        medicamentoId,
+        payload,
+      );
     }
-  };
+
+    return true;
+  } catch {
+    return false;
+  } finally {
+    setLoading(false);
+  }
+};
 
   useEffect(() => {
-    if (!medicamentoId || isCreate) return;
+    const carregarCompartimentos =
+      async () => {
+        try {
+          console.log(
+            "CARREGANDO COMPARTIMENTOS",
+          );
 
-    setLoading(true);
+          const dispositivoId =
+            usuario?.dispositivos?.[0]
+              ?.id;
 
-    MedicamentoService.getById(medicamentoId)
-      .then(reset)
-      .finally(() => setLoading(false));
-  }, [medicamentoId, isCreate, reset, setLoading]);
+          console.log(
+            "DISPOSITIVO ID:",
+            dispositivoId,
+          );
+
+          if (!dispositivoId) {
+            console.log(
+              "DISPOSITIVO ID NÃO ENCONTRADO",
+            );
+
+            return;
+          }
+
+          const dados =
+            await CompartimentoService.getByDispositivo(
+              dispositivoId,
+            );
+
+          console.log(
+            "COMPARTIMENTOS RECEBIDOS:",
+            dados,
+          );
+
+          setCompartimentosDisponiveis(
+            dados,
+          );
+        } catch (error) {
+          console.log(
+            "ERRO AO CARREGAR COMPARTIMENTOS:",
+            error,
+          );
+        }
+      };
+
+    carregarCompartimentos();
+  }, [usuario]);
+
+  useEffect(() => {
+    const carregarMedicamento =
+      async () => {
+        console.log(
+          "INICIANDO CARREGAMENTO MEDICAMENTO",
+        );
+
+        console.log(
+          "IS CREATE:",
+          isCreate,
+        );
+
+        console.log(
+          "MEDICAMENTO ID:",
+          medicamentoId,
+        );
+
+        if (
+          !medicamentoId ||
+          isCreate
+        ) {
+          console.log(
+            "NÃO VAI CARREGAR MEDICAMENTO",
+          );
+
+          return;
+        }
+
+        try {
+          setLoading(true);
+
+          console.log(
+            "BUSCANDO MEDICAMENTO...",
+          );
+
+          const medicamento =
+            await MedicamentoService.getById(
+              medicamentoId,
+            );
+
+          console.log(
+            "MEDICAMENTO RECEBIDO:",
+            medicamento,
+          );
+
+          const resetData = {
+            medicamentoNome:
+              medicamento.nome,
+
+            medicamentoDosagem:
+              medicamento.dosagem,
+
+            medicamentoDescricao:
+              medicamento.descricao,
+
+            compartimentos:
+              medicamento.compartimento_id
+                ? [
+                    medicamento.compartimento_id,
+                  ]
+                : [],
+
+            tipo: medicamento.tipo,
+
+            intervalo_horas:
+              medicamento.intervalo_horas ||
+              8,
+
+            horarios:
+              medicamento.horarios
+                ?.length
+                ? medicamento.horarios
+                : medicamento.horario
+                  ? [
+                      medicamento.horario,
+                    ]
+                  : ["08:00"],
+          };
+
+          console.log(
+            "RESET DATA:",
+            resetData,
+          );
+
+          reset(resetData);
+
+          console.log(
+            "FORM RESETADO",
+          );
+        } catch (error) {
+          console.log(
+            "ERRO AO CARREGAR MEDICAMENTO:",
+            error,
+          );
+        } finally {
+          console.log(
+            "FINALIZANDO LOADING GET",
+          );
+
+          setLoading(false);
+        }
+      };
+
+    carregarMedicamento();
+  }, [
+    medicamentoId,
+    isCreate,
+    reset,
+    setLoading,
+  ]);
 
   return {
-    
     control,
+
     handleSubmit,
+
     save,
 
     tipo,
+
     intervalo,
+
     compartimentos,
 
-    fields,
-    append,
-    remove,
+    compartimentosDisponiveis,
 
-  
+    horarios,
+
+    addHorario,
+
+    removeHorario,
+
+    updateHorario,
+
     setValue,
+
     toggleCompartimento,
-     screen,
+
+    errors,
+
+    screen,
   };
 }

@@ -9,7 +9,7 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
      "androidNavigationBar": {
-      "barStyle": "dark-content",
+      "barStyle": "dark-content"
     },
   
     "ios": {

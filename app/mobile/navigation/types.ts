@@ -15,8 +15,8 @@ export type RootStackParamList = {
 
   Responsavel: undefined;
   ResponsavelForm: {
-    mode: Mode;
-    responsavelId?: string;
+  mode: "create" | "edit" | "view";
+  responsavelId?: string;
   };
 
   Agendamento: undefined;
@@ -25,5 +25,6 @@ export type RootStackParamList = {
     agendamentoId?: string;
   };
  
+  
  
 };

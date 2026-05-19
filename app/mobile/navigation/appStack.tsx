@@ -3,13 +3,15 @@ import React from "react";
 import { useTheme } from "../../mobile/contexts/Theme/themeContext";
 import { RootStackParamList } from "./types";
 
-import {Home} from "../screens/Home";
+import { Home } from "../screens/Home";
 import { BottomTabs } from "./bottomTabs";
 import { Perfil } from "../screens/Perfil";
-import  { Medicamento } from "../screens/Cadastros/Medicamento";
+import { Medicamento } from "../screens/Cadastros/Medicamento";
 import { MedicamentoForm } from "../screens/Cadastros/Medicamento/MedicamentoForm";
 import { Historico } from "../screens/Cadastros/Historico";
-import {Alerta} from "../screens/Cadastros/Alerta";
+import { Alerta } from "../screens/Cadastros/Alerta";
+import { ResponsavelForm } from "../screens/Cadastros/Responsavel/ResponsavelForm";
+import { Responsavel } from "../screens/Cadastros/Responsavel";
 
 // import { Agendamento } from "../screens/Cadastros/Agendamento";
 // import { AgendamentoForm } from "../screens/Cadastros/Agendamento/AgendamentoForm";
@@ -22,7 +24,7 @@ export function AppStack() {
   const { theme } = useTheme();
 
   const headerOptions = {
-    headerStyle: {backgroundColor: theme.colors.surface},
+    headerStyle: { backgroundColor: theme.colors.surface },
     headerShadowVisible: false,
     headerTintColor: theme.colors.text,
     headerTitleStyle: { fontWeight: "bold" as const },
@@ -33,14 +35,14 @@ export function AppStack() {
 
 
       <Stack.Screen
-              name="Tabs"
-              component={BottomTabs}
-              options={{
-                headerShown: false,
-                
-              }}
-            />
-            
+        name="Tabs"
+        component={BottomTabs}
+        options={{
+          headerShown: false,
+
+        }}
+      />
+
       <Stack.Screen
         name="Home"
         component={Home}
@@ -70,7 +72,7 @@ export function AppStack() {
         options={{ title: "Medicamentos", ...headerOptions }}
       />
 
-       {/* <Stack.Screen
+      {/* <Stack.Screen
         name="Agendamento"
         component={Agendamento}
         options={{ title: 'Agendamentos', ...headerOptions }}
@@ -85,9 +87,18 @@ export function AppStack() {
         name="Perfil"
         component={Perfil}
         options={{ title: 'Meu Perfil', ...headerOptions }}
-      /> 
-     
-     
+      />
+
+      <Stack.Screen
+        name="Responsavel"
+        component={Responsavel}
+        options={{ title: "Responsáveis", ...headerOptions }}
+      />
+      <Stack.Screen
+        name="ResponsavelForm"
+        component={ResponsavelForm}
+        options={{ title: "Adicionar Responsável", ...headerOptions }}
+      />
     </Stack.Navigator>
   );
 }

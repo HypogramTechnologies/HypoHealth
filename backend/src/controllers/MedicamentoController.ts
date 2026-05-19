@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import prisma from "../database/db";
+import { logger } from "../utils/logger";
 
 export class MedicamentoController {
   async create(req: Request, res: Response) {
@@ -21,7 +22,9 @@ export class MedicamentoController {
       });
       return res.status(201).json(novoMedicamento);
     } catch (error) {
-      console.error(error);
+      logger.error(
+        `[MedicamentoController] Erro ao cadastrar medicamento: ${String(error)}`,
+      );
       return res.status(500).json({ erro: "Erro ao cadastrar medicamento." });
     }
   }
@@ -31,7 +34,9 @@ export class MedicamentoController {
       const medicamentos = await prisma.medicamento.findMany();
       return res.status(200).json(medicamentos);
     } catch (error) {
-      console.error(error);
+      logger.error(
+        `[MedicamentoController] Erro ao buscar medicamentos: ${String(error)}`,
+      );
       return res.status(500).json({ erro: "Erro ao buscar medicamentos." });
     }
   }
@@ -49,7 +54,9 @@ export class MedicamentoController {
 
       return res.status(200).json(medicamento);
     } catch (error) {
-      console.error(error);
+      logger.error(
+        `[MedicamentoController] Erro ao buscar medicamento por id: ${String(error)}`,
+      );
       return res.status(500).json({ erro: "Erro ao buscar medicamento." });
     }
   }
@@ -70,7 +77,9 @@ export class MedicamentoController {
 
       return res.status(200).json(medicamentoAtualizado);
     } catch (error) {
-      console.error(error);
+      logger.error(
+        `[MedicamentoController] Erro ao atualizar medicamento: ${String(error)}`,
+      );
       return res.status(500).json({
         erro: "Erro ao atualizar medicamento. Verifique se o ID existe.",
       });
@@ -85,7 +94,9 @@ export class MedicamentoController {
       });
       return res.status(204).send();
     } catch (error) {
-      console.error(error);
+      logger.error(
+        `[MedicamentoController] Erro ao deletar medicamento: ${String(error)}`,
+      );
       return res.status(500).json({ erro: "Erro ao deletar medicamento." });
     }
   }

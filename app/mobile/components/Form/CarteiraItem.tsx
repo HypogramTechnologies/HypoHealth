@@ -59,11 +59,6 @@ export function CarteiraItem({
         </View>
       )}
       
-      <MaterialCommunityIcons
-        name="chevron-right"
-        size={22}
-        color={theme.colors.opaco}
-      />
     </TouchableOpacity>
 
       {onPressDelete && (

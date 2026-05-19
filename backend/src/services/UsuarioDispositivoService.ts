@@ -42,9 +42,7 @@ export class UsuarioDispositivoService {
       });
 
       if (vinculoExistente) {
-        throw new Error(
-          "Este usuário já está vinculado a este dispositivo."
-        );
+        throw new Error("Este usuário já está vinculado a este dispositivo.");
       }
 
       const resultado = await prisma.usuarioDispositivo.create({
@@ -67,13 +65,13 @@ export class UsuarioDispositivoService {
       });
 
       logger.info(
-        `[UsuarioDispositivoService] Vínculo criado: ${dados.usuario_id} -> ${dados.dispositivo_id}`
+        `[UsuarioDispositivoService] Vínculo criado: ${dados.usuario_id} -> ${dados.dispositivo_id}`,
       );
 
       return resultado;
     } catch (error) {
       logger.error(
-        `[UsuarioDispositivoService] Erro ao criar vínculo: ${String(error)}`
+        `[UsuarioDispositivoService] Erro ao criar vínculo: ${String(error)}`,
       );
       throw error;
     }
@@ -100,7 +98,7 @@ export class UsuarioDispositivoService {
       return usuario;
     } catch (error) {
       logger.error(
-        `[UsuarioDispositivoService] Erro ao buscar usuário por email: ${String(error)}`
+        `[UsuarioDispositivoService] Erro ao buscar usuário por email: ${String(error)}`,
       );
       throw error;
     }
@@ -138,7 +136,7 @@ export class UsuarioDispositivoService {
       return usuarios;
     } catch (error) {
       logger.error(
-        `[UsuarioDispositivoService] Erro ao buscar usuários do dispositivo ${dispositivo_id}: ${String(error)}`
+        `[UsuarioDispositivoService] Erro ao buscar usuários do dispositivo ${dispositivo_id}: ${String(error)}`,
       );
       throw error;
     }
@@ -176,7 +174,7 @@ export class UsuarioDispositivoService {
       return dispositivos;
     } catch (error) {
       logger.error(
-        `[UsuarioDispositivoService] Erro ao buscar dispositivos do usuário ${usuario_id}: ${String(error)}`
+        `[UsuarioDispositivoService] Erro ao buscar dispositivos do usuário ${usuario_id}: ${String(error)}`,
       );
       throw error;
     }
@@ -191,14 +189,12 @@ export class UsuarioDispositivoService {
         where: { id },
       });
 
-      logger.info(
-        `[UsuarioDispositivoService] Vínculo removido: ${id}`
-      );
+      logger.info(`[UsuarioDispositivoService] Vínculo removido: ${id}`);
 
       return resultado;
     } catch (error) {
       logger.error(
-        `[UsuarioDispositivoService] Erro ao remover vínculo ${id}: ${String(error)}`
+        `[UsuarioDispositivoService] Erro ao remover vínculo ${id}: ${String(error)}`,
       );
       throw error;
     }
@@ -209,7 +205,7 @@ export class UsuarioDispositivoService {
    */
   async deleteByUsuarioAndDispositivo(
     usuario_id: string,
-    dispositivo_id: string
+    dispositivo_id: string,
   ) {
     try {
       const resultado = await prisma.usuarioDispositivo.delete({
@@ -222,13 +218,13 @@ export class UsuarioDispositivoService {
       });
 
       logger.info(
-        `[UsuarioDispositivoService] Vínculo removido: ${usuario_id} -> ${dispositivo_id}`
+        `[UsuarioDispositivoService] Vínculo removido: ${usuario_id} -> ${dispositivo_id}`,
       );
 
       return resultado;
     } catch (error) {
       logger.error(
-        `[UsuarioDispositivoService] Erro ao remover vínculo: ${String(error)}`
+        `[UsuarioDispositivoService] Erro ao remover vínculo: ${String(error)}`,
       );
       throw error;
     }

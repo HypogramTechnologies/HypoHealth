@@ -29,7 +29,7 @@ export class UsuarioDispositivoController {
       return res.status(201).json(resultado);
     } catch (error: any) {
       logger.error(
-        `[UsuarioDispositivoController] Erro ao criar vínculo: ${String(error)}`
+        `[UsuarioDispositivoController] Erro ao criar vínculo: ${String(error)}`,
       );
 
       const statusCode = error.message?.includes("não encontrado") ? 404 : 400;
@@ -51,9 +51,8 @@ export class UsuarioDispositivoController {
       let usuarioFinal_id = usuario_id;
 
       if (email && !usuario_id) {
-        const usuario = await usuarioDispositivoService.getUsuarioByEmail(
-          email
-        );
+        const usuario =
+          await usuarioDispositivoService.getUsuarioByEmail(email);
         usuarioFinal_id = usuario.id;
       }
 
@@ -72,7 +71,7 @@ export class UsuarioDispositivoController {
       return res.status(201).json(resultado);
     } catch (error: any) {
       logger.error(
-        `[UsuarioDispositivoController] Erro ao cadastrar responsável: ${String(error)}`
+        `[UsuarioDispositivoController] Erro ao cadastrar responsável: ${String(error)}`,
       );
 
       const statusCode = error.message?.includes("não encontrado") ? 404 : 400;
@@ -102,7 +101,7 @@ export class UsuarioDispositivoController {
       return res.status(200).json(usuarios);
     } catch (error: any) {
       logger.error(
-        `[UsuarioDispositivoController] Erro ao buscar usuários por dispositivo: ${String(error)}`
+        `[UsuarioDispositivoController] Erro ao buscar usuários por dispositivo: ${String(error)}`,
       );
 
       return res.status(400).json({
@@ -131,7 +130,7 @@ export class UsuarioDispositivoController {
       return res.status(200).json(dispositivos);
     } catch (error: any) {
       logger.error(
-        `[UsuarioDispositivoController] Erro ao buscar dispositivos por usuário: ${String(error)}`
+        `[UsuarioDispositivoController] Erro ao buscar dispositivos por usuário: ${String(error)}`,
       );
 
       return res.status(400).json({
@@ -159,7 +158,7 @@ export class UsuarioDispositivoController {
       return res.status(204).send();
     } catch (error: any) {
       logger.error(
-        `[UsuarioDispositivoController] Erro ao remover vínculo: ${String(error)}`
+        `[UsuarioDispositivoController] Erro ao remover vínculo: ${String(error)}`,
       );
 
       const statusCode = error.message?.includes("não encontrado") ? 404 : 400;

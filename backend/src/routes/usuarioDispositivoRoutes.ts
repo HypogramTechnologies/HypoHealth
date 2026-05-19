@@ -7,11 +7,15 @@ const router = Router();
 router.post("/", (req, res) => usuarioDispositivoController.create(req, res));
 
 router.get("/usuario/:usuario_id", (req, res) =>
-  usuarioDispositivoController.getByUsuario(req, res),
+  usuarioDispositivoController.getByUsuario(req, res)
 );
 
 router.delete("/:id", (req, res) =>
-  usuarioDispositivoController.delete(req, res),
+  usuarioDispositivoController.delete(req, res)
+);
+
+router.post("/responsavel", (req, res) =>
+  usuarioDispositivoController.createResponsavel(req, res)
 );
 
 export default router;

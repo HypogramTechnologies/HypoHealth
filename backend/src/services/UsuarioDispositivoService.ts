@@ -10,8 +10,34 @@ export class UsuarioDispositivoService {
   async create(dados: CreateUsuarioDispositivoDTO) {
     try {
       console.log(
-        `[UsuarioDispositivoService] Criando vínculo usuário/dispositivo`,
+        `[UsuarioDispositivoService] Criando vínculo usuário/dispositivo`
       );
+
+      const vinculoExistente = await prisma.usuarioDispositivo.findFirst({
+        where: {
+          usuario_id: dados.usuario_id,
+          dispositivo_id: dados.dispositivo_id,
+        },
+      });
+
+      if (vinculoExistente) {
+        throw new Error("Usuário já vinculado a este dispositivo.");
+      }
+
+      if (dados.tipo_acesso === "PROPRIETARIO") {
+        const proprietarioExistente = await prisma.usuarioDispositivo.findFirst(
+          {
+            where: {
+              dispositivo_id: dados.dispositivo_id,
+              tipo_acesso: "PROPRIETARIO",
+            },
+          }
+        );
+
+        if (proprietarioExistente) {
+          throw new Error("Este dispositivo já possui proprietário.");
+        }
+      }
 
       const resultado = await prisma.usuarioDispositivo.create({
         data: dados,
@@ -23,7 +49,7 @@ export class UsuarioDispositivoService {
     } catch (error) {
       console.error(
         `[UsuarioDispositivoService] ❌ Erro ao criar vínculo`,
-        error,
+        error
       );
 
       throw error;
@@ -33,7 +59,7 @@ export class UsuarioDispositivoService {
   async getByDispositivo(dispositivo_id: string) {
     try {
       console.log(
-        `[UsuarioDispositivoService] Buscando usuários do dispositivo ${dispositivo_id}`,
+        `[UsuarioDispositivoService] Buscando usuários do dispositivo ${dispositivo_id}`
       );
 
       const usuarios = await prisma.usuarioDispositivo.findMany({
@@ -47,14 +73,14 @@ export class UsuarioDispositivoService {
       });
 
       console.log(
-        `[UsuarioDispositivoService] ✅ ${usuarios.length} usuários encontrados`,
+        `[UsuarioDispositivoService] ✅ ${usuarios.length} usuários encontrados`
       );
 
       return usuarios;
     } catch (error) {
       console.error(
         `[UsuarioDispositivoService] ❌ Erro ao buscar usuários`,
-        error,
+        error
       );
 
       throw error;
@@ -64,7 +90,7 @@ export class UsuarioDispositivoService {
   async getByUsuario(usuario_id: string) {
     try {
       console.log(
-        `[UsuarioDispositivoService] Buscando dispositivos do usuário ${usuario_id}`,
+        `[UsuarioDispositivoService] Buscando dispositivos do usuário ${usuario_id}`
       );
 
       const dispositivos = await prisma.usuarioDispositivo.findMany({
@@ -78,14 +104,14 @@ export class UsuarioDispositivoService {
       });
 
       console.log(
-        `[UsuarioDispositivoService] ✅ ${dispositivos.length} dispositivos encontrados`,
+        `[UsuarioDispositivoService] ✅ ${dispositivos.length} dispositivos encontrados`
       );
 
       return dispositivos;
     } catch (error) {
       console.error(
         `[UsuarioDispositivoService] ❌ Erro ao buscar dispositivos`,
-        error,
+        error
       );
 
       throw error;
@@ -106,7 +132,7 @@ export class UsuarioDispositivoService {
     } catch (error) {
       console.error(
         `[UsuarioDispositivoService] ❌ Erro ao remover vínculo`,
-        error,
+        error
       );
 
       throw error;

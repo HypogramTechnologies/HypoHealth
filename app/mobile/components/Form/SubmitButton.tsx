@@ -1,17 +1,19 @@
-import { TouchableOpacity, Text, GestureResponderEvent } from 'react-native';
+import { TouchableOpacity, Text, GestureResponderEvent, ActivityIndicator } from 'react-native';
 import { useTheme } from '../../contexts/Theme/themeContext';
 
 interface Props {
   label: string;
   onPress: (event: GestureResponderEvent) => void | Promise<void>;
+  loading?: boolean;
 }
 
-export function SubmitButton({ label, onPress }: Props) {
+export function SubmitButton({ label, onPress, loading }: Props) {
   const { theme } = useTheme();
 
   return (
     <TouchableOpacity
       onPress={onPress}
+      disabled={loading}
       style={{
         backgroundColor: theme.colors.primary,
         paddingVertical: 16,
@@ -20,17 +22,22 @@ export function SubmitButton({ label, onPress }: Props) {
         flexDirection: 'row',
         justifyContent: 'center',
         marginTop: 24,
+        opacity: loading ? 0.7 : 1,
       }}
     >
-      <Text
-        style={{
-          color: theme.colors.text,
-          marginLeft: 8,
-          fontSize: theme.sizes.mediumText.fontSize,
-        }}
-      >
-        {label}
-      </Text>
+      {loading ? (
+        <ActivityIndicator color={theme.colors.text} />
+      ) : (
+        <Text
+          style={{
+            color: theme.colors.text,
+            marginLeft: 8,
+            fontSize: theme.sizes.mediumText.fontSize,
+          }}
+        >
+          {label}
+        </Text>
+      )}
     </TouchableOpacity>
   );
 }

@@ -8,6 +8,7 @@ import agendamentoQueryRoutes from "./agendamentoQueryRoutes";
 import authRoutes from "./authRoutes";
 import { authMiddleware } from "../middlewares/authMiddleware";
 import compartimentoRoutes from "./compartimentoRoutes";
+import usuarioDispositivorRoutes from "./usuarioDispositivoRoutes";
 
 const routes = Router();
 
@@ -23,4 +24,6 @@ routes.use("/compartimentos", compartimentoRoutes);
 routes.use("/agendamentos", agendamentoRoutes);
 routes.use("/usuarios", authMiddleware, usuarioRoutes);
 routes.use("/auth", authRoutes);
+routes.use("/usuario-dispositivos", usuarioDispositivorRoutes);
+
 export default routes;

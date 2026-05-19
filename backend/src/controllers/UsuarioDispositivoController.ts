@@ -108,7 +108,9 @@ export class UsuarioDispositivoController {
 
       return res.status(201).json(resultado);
     } catch (error: any) {
-      console.error(error);
+      logger.error(
+        `[UsuarioDispositivoController] Erro ao cadastrar responsável: ${String(error)}`,
+      );
 
       return res.status(400).json({
         erro: error.message || "Erro ao cadastrar responsável.",

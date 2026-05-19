@@ -8,7 +8,7 @@ import agendamentoQueryRoutes from "./agendamentoQueryRoutes";
 import authRoutes from "./authRoutes";
 import { authMiddleware } from "../middlewares/authMiddleware";
 import compartimentoRoutes from "./compartimentoRoutes";
-
+import dispositivoRoutes from "./dispositivoRoutes";
 const routes = Router();
 
 routes.use("/completos", agendMedRoutes);
@@ -21,6 +21,7 @@ routes.use("/agendamentos", agendamentoQueryRoutes);
 routes.use("/medicamentos", medicamentoRoutes);
 routes.use("/compartimentos", compartimentoRoutes);
 routes.use("/agendamentos", agendamentoRoutes);
+routes.use("/dispositivos", dispositivoRoutes);
 routes.use("/usuarios", authMiddleware, usuarioRoutes);
 routes.use("/auth", authRoutes);
 export default routes;

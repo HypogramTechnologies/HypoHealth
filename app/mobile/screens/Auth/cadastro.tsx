@@ -17,7 +17,7 @@ export default function CadastroScreen() {
   const navigation = useNavigation();
   const [secure, setSecure] = useState(true);
   const [secureConfirm, setSecureConfirm] = useState(true);
-  const { control, errors, handleSubmit } = useCadastroScreen();
+  const { control, errors, handleSubmit, dispositivoId } = useCadastroScreen();
 
   async function handleCadastro(data: any) {
     try {
@@ -37,14 +37,13 @@ export default function CadastroScreen() {
             nome: data.nome,
             email: data.email,
             senha: data.senha,
-
-            dispositivo_id: data.dispositivo_id,
+            dispositivo_id: dispositivoId,
           }),
         },
       );
 
       const result = await response.json();
-
+      console.log("Resposta do cadastro:", result);
       if (!response.ok) {
         throw new Error(result.erro);
       }
@@ -53,6 +52,7 @@ export default function CadastroScreen() {
 
       showMessage("Cadastro realizado com sucesso", "success");
     } catch (error: any) {
+      console.error("Erro ao realizar cadastro:", error);
       showMessage(error.message || "Erro ao realizar cadastro", "error");
     }
   }
@@ -105,19 +105,6 @@ export default function CadastroScreen() {
             value={field.value}
             onChangeText={field.onChange}
             error={errors.nome?.message}
-          />
-        )}
-      />
-
-      <Controller
-        control={control}
-        name="dispositivo_id"
-        render={({ field }) => (
-          <InputField
-            label="Código do dispositivo"
-            value={field.value}
-            onChangeText={field.onChange}
-            error={errors.dispositivo_id?.message}
           />
         )}
       />

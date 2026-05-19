@@ -1,12 +1,9 @@
 import prisma from "../database/db";
+import { logger } from "../utils/logger";
 
 export class CompartimentoService {
   async getByDispositivo(dispositivoId: string) {
     try {
-      console.log(
-        `[CompartimentoService] Buscando compartimentos do dispositivo ${dispositivoId}`,
-      );
-
       const compartimentos = await prisma.compartimento.findMany({
         where: {
           dispositivo_id: dispositivoId,
@@ -27,15 +24,10 @@ export class CompartimentoService {
         },
       });
 
-      console.log(
-        `[CompartimentoService] ✅ Encontrados ${compartimentos.length} compartimentos`,
-      );
-
       return compartimentos;
     } catch (error) {
-      console.error(
-        `[CompartimentoService] ❌ Erro ao buscar compartimentos:`,
-        error,
+      logger.error(
+        `[CompartimentoService] Erro ao buscar compartimentos do dispositivo ${dispositivoId}: ${String(error)}`,
       );
 
       throw error;
@@ -44,8 +36,6 @@ export class CompartimentoService {
 
   async getById(id: string) {
     try {
-      console.log(`[CompartimentoService] Buscando compartimento ${id}`);
-
       const compartimento = await prisma.compartimento.findUnique({
         where: { id },
 
@@ -73,18 +63,13 @@ export class CompartimentoService {
       });
 
       if (!compartimento) {
-        console.log(`[CompartimentoService] ⚠️ Compartimento não encontrado`);
-
         return null;
       }
 
-      console.log(`[CompartimentoService] ✅ Compartimento encontrado`);
-
       return compartimento;
     } catch (error) {
-      console.error(
-        `[CompartimentoService] ❌ Erro ao buscar compartimento:`,
-        error,
+      logger.error(
+        `[CompartimentoService] Erro ao buscar compartimento ${id}: ${String(error)}`,
       );
 
       throw error;

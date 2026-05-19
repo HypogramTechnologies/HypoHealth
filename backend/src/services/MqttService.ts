@@ -1,5 +1,6 @@
 import mqtt, { MqttClient } from "mqtt";
 import { IMqttEvent } from "../types/IMqtt";
+import { logger } from "../utils/logger";
 
 class MqttService {
   private client: MqttClient | null = null;
@@ -14,15 +15,14 @@ class MqttService {
     });
 
     this.client.on("connect", () => {
-      console.log("[MQTT] Conectado ao broker");
+      logger.info("[MQTT] Conectado ao broker");
 
       this.client?.subscribe("dispositivo/+/evento", (err) => {
         if (!err) {
-          console.log("[MQTT] Inscrito no tópico de eventos");
+          logger.info("[MQTT] Inscrito no tópico de eventos");
         } else {
-          console.error(
-            "[MQTT] Erro ao se inscrever no tópico de eventos:",
-            err,
+          logger.error(
+            `[MQTT] Erro ao se inscrever no tópico de eventos: ${String(err)}`,
           );
         }
       });
@@ -33,7 +33,7 @@ class MqttService {
     });
 
     this.client.on("error", (err) => {
-      console.error("[MQTT] Erro na conexão:", err);
+      logger.error(`[MQTT] Erro na conexão: ${String(err)}`);
     });
   }
 
@@ -45,9 +45,6 @@ class MqttService {
       parts[2] === "evento"
     ) {
       const macAddress = parts[1];
-      console.log(
-        `[MQTT] Evento recebido do dispositivo ${macAddress}: ${message}`,
-      );
 
       try {
         const evento: IMqttEvent = JSON.parse(message);
@@ -55,7 +52,9 @@ class MqttService {
           this.eventCallback(macAddress, evento);
         }
       } catch (error) {
-        console.error("[MQTT] Erro ao processar mensagem recebida:", error);
+        logger.error(
+          `[MQTT] Erro ao processar mensagem recebida: ${String(error)}`,
+        );
       }
     }
   }

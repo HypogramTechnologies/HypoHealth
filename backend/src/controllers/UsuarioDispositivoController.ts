@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 
 import { UsuarioDispositivoService } from "../services/UsuarioDispositivoService";
+import { logger } from "../utils/logger";
 
 const usuarioDispositivoService = new UsuarioDispositivoService();
 
@@ -23,7 +24,9 @@ export class UsuarioDispositivoController {
 
       return res.status(201).json(resultado);
     } catch (error) {
-      console.error(error);
+      logger.error(
+        `[UsuarioDispositivoController] Erro ao criar vínculo: ${String(error)}`,
+      );
 
       return res.status(500).json({
         erro: "Erro ao vincular usuário ao dispositivo.",
@@ -40,7 +43,9 @@ export class UsuarioDispositivoController {
 
       return res.status(200).json(usuarios);
     } catch (error) {
-      console.error(error);
+      logger.error(
+        `[UsuarioDispositivoController] Erro ao buscar usuários por dispositivo: ${String(error)}`,
+      );
 
       return res.status(500).json({
         erro: "Erro ao buscar usuários do dispositivo.",
@@ -57,7 +62,9 @@ export class UsuarioDispositivoController {
 
       return res.status(200).json(dispositivos);
     } catch (error) {
-      console.error(error);
+      logger.error(
+        `[UsuarioDispositivoController] Erro ao buscar dispositivos por usuário: ${String(error)}`,
+      );
 
       return res.status(500).json({
         erro: "Erro ao buscar dispositivos do usuário.",
@@ -73,10 +80,40 @@ export class UsuarioDispositivoController {
 
       return res.status(204).send();
     } catch (error) {
-      console.error(error);
+      logger.error(
+        `[UsuarioDispositivoController] Erro ao remover vínculo: ${String(error)}`,
+      );
 
       return res.status(500).json({
         erro: "Erro ao remover vínculo.",
+      });
+    }
+  }
+
+  async createResponsavel(req: Request, res: Response) {
+    try {
+      const { usuario_id, dispositivo_id } = req.body;
+
+      if (!usuario_id || !dispositivo_id) {
+        return res.status(400).json({
+          erro: "usuario_id e dispositivo_id são obrigatórios.",
+        });
+      }
+
+      const resultado = await usuarioDispositivoService.create({
+        usuario_id,
+        dispositivo_id,
+        tipo_acesso: "RESPONSAVEL",
+      });
+
+      return res.status(201).json(resultado);
+    } catch (error: any) {
+      logger.error(
+        `[UsuarioDispositivoController] Erro ao cadastrar responsável: ${String(error)}`,
+      );
+
+      return res.status(400).json({
+        erro: error.message || "Erro ao cadastrar responsável.",
       });
     }
   }

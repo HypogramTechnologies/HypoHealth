@@ -1,6 +1,7 @@
 import prisma from "../database/db";
 import { StatusRetirada } from "@prisma/client";
 import { IMqttEvent } from "../types/IMqtt";
+import { logger } from "../utils/logger";
 
 export class MedicationIntakeService {
   //Chamado pelo AgendadorCronService.ts no momento em que o comando MQTT é enviado
@@ -16,15 +17,12 @@ export class MedicationIntakeService {
           status: StatusRetirada.PENDENTE,
         },
       });
-      console.log(
-        `[MedicationIntakeService] Registro PENDENTE criado para o agendamento horário: ${agendamentoHorarioId}`,
-      );
       return registro;
     } catch (error) {
-      console.error(
-        "[MedicationIntakeService] Erro ao criar registro pendente:",
-        error,
+      logger.error(
+        `[MedicationIntakeService] Erro ao criar registro pendente: ${String(error)}`,
       );
+      throw error;
     }
   }
 
@@ -32,14 +30,11 @@ export class MedicationIntakeService {
   async processarRetirada(payload: IMqttEvent, mac?: string) {
     try {
       if (payload.evento !== "FECHAMENTO") {
-        console.log(
-          `[MedicationIntakeService] Evento ${payload.evento} recebido. Aguardando o FECHAMENTO para computar a retirada.`,
-        );
         return; // Ignora ABERTURA ou outros estados para a atualização do status final
       }
 
       if (payload.status === "FALHA") {
-        console.log(
+        logger.warn(
           `[MedicationIntakeService] Dispositivo reportou falha na abertura: ${payload.mensagem}`,
         );
         return;
@@ -49,11 +44,6 @@ export class MedicationIntakeService {
       const dataEvento = !isNaN(Number(payload.timestamp))
         ? new Date(Number(payload.timestamp) * 1000)
         : new Date(payload.timestamp);
-
-      console.log(
-        `[MedicationIntakeService] Processando evento do MAC [${mac}]:`,
-        payload,
-      );
 
       // Encontrar o compartimento correto filtrando pelo MAC do dispositivo E pela posição
       const compartimento = await prisma.compartimento.findFirst({
@@ -66,7 +56,7 @@ export class MedicationIntakeService {
       });
 
       if (!compartimento) {
-        console.log(
+        logger.warn(
           `[MedicationIntakeService] Compartimento ${payload.compartimento} não encontrado para o dispositivo ${mac}`,
         );
         return;
@@ -95,7 +85,7 @@ export class MedicationIntakeService {
       });
 
       if (!retirada) {
-        console.log(
+        logger.warn(
           `[MedicationIntakeService] Nenhuma retirada PENDENTE encontrada para o MAC ${mac} no compartimento ${payload.compartimento}`,
         );
         return;
@@ -123,14 +113,9 @@ export class MedicationIntakeService {
           status,
         },
       });
-
-      console.log(
-        `[MedicationIntakeService] Retirada ${retirada.id} atualizada com sucesso de PENDENTE para ${status}`,
-      );
     } catch (error) {
-      console.error(
-        "[MedicationIntakeService] Erro ao processar retirada:",
-        error,
+      logger.error(
+        `[MedicationIntakeService] Erro ao processar retirada: ${String(error)}`,
       );
     }
   }

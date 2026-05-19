@@ -1,5 +1,6 @@
 import prisma from "../database/db";
 import { AgendamentoHorarioService } from "./AgendamentoHorarioService";
+import { logger } from "../utils/logger";
 
 const horarioService = new AgendamentoHorarioService();
 
@@ -9,11 +10,6 @@ export class AgendamentoService {
     const { horario, horarios, ...restoDados } = dados;
 
     try {
-      console.log(
-        `[AgendamentoService] Criando agendamento com dados:`,
-        restoDados,
-      );
-
       const agendamento = await db.agendamento.create({
         data: {
           ...restoDados,
@@ -22,29 +18,17 @@ export class AgendamentoService {
         },
       });
 
-      console.log(
-        `[AgendamentoService] ✅ Agendamento criado com ID: ${agendamento.id}`,
-      );
-
       // Criar horário(s) se fornecido(s)
       if (horario) {
-        console.log(`[AgendamentoService] Criando horário único: ${horario}`);
         await horarioService.create(agendamento.id, horario, tx);
       } else if (horarios && Array.isArray(horarios) && horarios.length > 0) {
-        console.log(
-          `[AgendamentoService] Criando múltiplos horários:`,
-          horarios,
-        );
         await horarioService.createMultiple(agendamento.id, horarios, tx);
-      } else {
-        console.log(`[AgendamentoService] ⚠️ Nenhum horário fornecido`);
       }
 
       return agendamento;
     } catch (error) {
-      console.error(
-        `[AgendamentoService] ❌ Erro ao criar agendamento:`,
-        error,
+      logger.error(
+        `[AgendamentoService] Erro ao criar agendamento: ${String(error)}`,
       );
       throw error;
     }
@@ -79,8 +63,6 @@ export class AgendamentoService {
     const { horario, horarios, ...restoDados } = dados;
 
     try {
-      console.log(`[AgendamentoService] Atualizando agendamento ${id}`);
-
       const agendamento = await prisma.agendamento.update({
         where: { id },
         data: {
@@ -101,24 +83,19 @@ export class AgendamentoService {
         horario ||
         (horarios && Array.isArray(horarios) && horarios.length > 0)
       ) {
-        console.log(`[AgendamentoService] Deletando horários antigos...`);
         await horarioService.deleteByAgendamentoId(id);
 
         if (horario) {
-          console.log(`[AgendamentoService] Criando novo horário: ${horario}`);
           await horarioService.create(id, horario);
         } else if (horarios && Array.isArray(horarios)) {
-          console.log(`[AgendamentoService] Criando novos horários:`, horarios);
           await horarioService.createMultiple(id, horarios);
         }
       }
 
-      console.log(`[AgendamentoService] ✅ Agendamento atualizado com sucesso`);
       return agendamento;
     } catch (error) {
-      console.error(
-        `[AgendamentoService] ❌ Erro ao atualizar agendamento:`,
-        error,
+      logger.error(
+        `[AgendamentoService] Erro ao atualizar agendamento ${id}: ${String(error)}`,
       );
       throw error;
     }
@@ -126,19 +103,14 @@ export class AgendamentoService {
 
   async delete(id: string) {
     try {
-      console.log(`[AgendamentoService] Deletando agendamento ${id}`);
-
       // Deletar horários associados (cascade)
       await horarioService.deleteByAgendamentoId(id);
 
       const resultado = await prisma.agendamento.delete({ where: { id } });
-
-      console.log(`[AgendamentoService] ✅ Agendamento deletado com sucesso`);
       return resultado;
     } catch (error) {
-      console.error(
-        `[AgendamentoService] ❌ Erro ao deletar agendamento:`,
-        error,
+      logger.error(
+        `[AgendamentoService] Erro ao deletar agendamento ${id}: ${String(error)}`,
       );
       throw error;
     }

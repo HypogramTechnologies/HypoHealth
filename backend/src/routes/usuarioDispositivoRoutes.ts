@@ -14,4 +14,8 @@ router.delete("/:id", (req, res) =>
   usuarioDispositivoController.delete(req, res),
 );
 
+router.post("/responsavel", (req, res) =>
+  usuarioDispositivoController.createResponsavel(req, res),
+);
+
 export default router;

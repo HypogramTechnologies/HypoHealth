@@ -1,13 +1,10 @@
 import prisma from "../database/db";
+import { logger } from "../utils/logger";
 
 export class MedicAgendamentoQueryService {
   // Buscar todos os medicamentos com seus agendamentos
   async getAllCompleto() {
     try {
-      console.log(
-        `[MedicAgendamentoQueryService] Buscando todos os medicamentos com agendamentos`,
-      );
-
       const medicamentos = await prisma.medicamento.findMany({
         include: {
           agendamentos: {
@@ -20,15 +17,10 @@ export class MedicAgendamentoQueryService {
           },
         },
       });
-
-      console.log(
-        `[MedicAgendamentoQueryService] ✅ Encontrados ${medicamentos.length} medicamentos`,
-      );
       return medicamentos;
     } catch (error) {
-      console.error(
-        `[MedicAgendamentoQueryService] ❌ Erro ao buscar medicamentos:`,
-        error,
+      logger.error(
+        `[MedicAgendamentoQueryService] Erro ao buscar medicamentos com agendamentos: ${String(error)}`,
       );
       throw error;
     }
@@ -37,10 +29,6 @@ export class MedicAgendamentoQueryService {
   // Buscar medicamento específico com seus agendamentos
   async getByIdCompleto(medicamento_id: string) {
     try {
-      console.log(
-        `[MedicAgendamentoQueryService] Buscando medicamento ${medicamento_id} com agendamentos`,
-      );
-
       const medicamento = await prisma.medicamento.findUnique({
         where: { id: medicamento_id },
         include: {
@@ -56,20 +44,12 @@ export class MedicAgendamentoQueryService {
       });
 
       if (!medicamento) {
-        console.log(
-          `[MedicAgendamentoQueryService] ⚠️ Medicamento ${medicamento_id} não encontrado`,
-        );
         return null;
       }
-
-      console.log(
-        `[MedicAgendamentoQueryService] ✅ Medicamento encontrado com ${medicamento.agendamentos.length} agendamentos`,
-      );
       return medicamento;
     } catch (error) {
-      console.error(
-        `[MedicAgendamentoQueryService] ❌ Erro ao buscar medicamento:`,
-        error,
+      logger.error(
+        `[MedicAgendamentoQueryService] Erro ao buscar medicamento ${medicamento_id}: ${String(error)}`,
       );
       throw error;
     }
@@ -78,10 +58,6 @@ export class MedicAgendamentoQueryService {
   // Buscar agendamento específico com medicamento e horários
   async getAgendamentoCompleto(agendamento_id: string) {
     try {
-      console.log(
-        `[MedicAgendamentoQueryService] Buscando agendamento ${agendamento_id} completo`,
-      );
-
       const agendamento = await prisma.agendamento.findUnique({
         where: { id: agendamento_id },
         include: {
@@ -94,20 +70,12 @@ export class MedicAgendamentoQueryService {
       });
 
       if (!agendamento) {
-        console.log(
-          `[MedicAgendamentoQueryService] ⚠️ Agendamento ${agendamento_id} não encontrado`,
-        );
         return null;
       }
-
-      console.log(
-        `[MedicAgendamentoQueryService] ✅ Agendamento encontrado com ${agendamento.horarios.length} horários`,
-      );
       return agendamento;
     } catch (error) {
-      console.error(
-        `[MedicAgendamentoQueryService] ❌ Erro ao buscar agendamento:`,
-        error,
+      logger.error(
+        `[MedicAgendamentoQueryService] Erro ao buscar agendamento ${agendamento_id}: ${String(error)}`,
       );
       throw error;
     }
@@ -116,10 +84,6 @@ export class MedicAgendamentoQueryService {
   // Buscar todos os agendamentos com medicamentos e horários
   async getAllAgendamentosCompleto() {
     try {
-      console.log(
-        `[MedicAgendamentoQueryService] Buscando todos os agendamentos completos`,
-      );
-
       const agendamentos = await prisma.agendamento.findMany({
         include: {
           medicamento: true,
@@ -132,15 +96,10 @@ export class MedicAgendamentoQueryService {
           data_inicio: "asc",
         },
       });
-
-      console.log(
-        `[MedicAgendamentoQueryService] ✅ Encontrados ${agendamentos.length} agendamentos`,
-      );
       return agendamentos;
     } catch (error) {
-      console.error(
-        `[MedicAgendamentoQueryService] ❌ Erro ao buscar agendamentos:`,
-        error,
+      logger.error(
+        `[MedicAgendamentoQueryService] Erro ao buscar agendamentos completos: ${String(error)}`,
       );
       throw error;
     }
@@ -235,6 +194,9 @@ export class MedicAgendamentoQueryService {
 
       return resultado;
     } catch (error) {
+      logger.error(
+        `[MedicAgendamentoQueryService] Erro ao buscar medicamentos do dia para usuário ${usuarioId}: ${String(error)}`,
+      );
       throw error;
     }
   }

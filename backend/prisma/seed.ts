@@ -66,7 +66,7 @@ async function main(): Promise<void> {
       create: {
         id: DISPOSITIVO_ID,
         nome: "Caixa de comprimidos",
-        numero_serie: "0",
+        numero_serie: "08D1F9D1ED4C",
         criado_em: new Date(),
       },
     });
@@ -88,10 +88,10 @@ async function main(): Promise<void> {
 
 main()
   .then(() => {
-    console.log("Seed concluído com sucesso.");
+    console.info("Seed concluído com sucesso.");
     process.exit(0);
   })
   .catch((error) => {
-    console.error("Erro ao executar seed:", error);
+    console.error(`Erro ao executar seed: ${String(error)}`);
     process.exit(1);
   });

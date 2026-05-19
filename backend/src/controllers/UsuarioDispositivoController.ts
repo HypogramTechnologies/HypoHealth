@@ -89,6 +89,32 @@ export class UsuarioDispositivoController {
       });
     }
   }
+
+  async createResponsavel(req: Request, res: Response) {
+    try {
+      const { usuario_id, dispositivo_id } = req.body;
+
+      if (!usuario_id || !dispositivo_id) {
+        return res.status(400).json({
+          erro: "usuario_id e dispositivo_id são obrigatórios.",
+        });
+      }
+
+      const resultado = await usuarioDispositivoService.create({
+        usuario_id,
+        dispositivo_id,
+        tipo_acesso: "RESPONSAVEL",
+      });
+
+      return res.status(201).json(resultado);
+    } catch (error: any) {
+      console.error(error);
+
+      return res.status(400).json({
+        erro: error.message || "Erro ao cadastrar responsável.",
+      });
+    }
+  }
 }
 
 export const usuarioDispositivoController = new UsuarioDispositivoController();

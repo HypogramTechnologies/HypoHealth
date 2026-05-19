@@ -10,14 +10,19 @@ type CreateUsuarioDispositivoDTO = {
 export class UsuarioDispositivoService {
   async create(dados: CreateUsuarioDispositivoDTO) {
     try {
+      console.log(
+        `[UsuarioDispositivoService] Criando vínculo usuário/dispositivo`,
+      );
+
       const resultado = await prisma.usuarioDispositivo.create({
         data: dados,
       });
 
       return resultado;
     } catch (error) {
-      logger.error(
-        `[UsuarioDispositivoService] Erro ao criar vínculo usuário/dispositivo: ${String(error)}`,
+      console.error(
+        `[UsuarioDispositivoService] ❌ Erro ao criar vínculo`,
+        error,
       );
 
       throw error;
@@ -26,6 +31,10 @@ export class UsuarioDispositivoService {
 
   async getByDispositivo(dispositivo_id: string) {
     try {
+      console.log(
+        `[UsuarioDispositivoService] Buscando usuários do dispositivo ${dispositivo_id}`,
+      );
+
       const usuarios = await prisma.usuarioDispositivo.findMany({
         where: {
           dispositivo_id,
@@ -36,10 +45,15 @@ export class UsuarioDispositivoService {
         },
       });
 
+      console.log(
+        `[UsuarioDispositivoService] ✅ ${usuarios.length} usuários encontrados`,
+      );
+
       return usuarios;
     } catch (error) {
-      logger.error(
-        `[UsuarioDispositivoService] Erro ao buscar usuários do dispositivo ${dispositivo_id}: ${String(error)}`,
+      console.error(
+        `[UsuarioDispositivoService] ❌ Erro ao buscar usuários`,
+        error,
       );
 
       throw error;
@@ -48,6 +62,10 @@ export class UsuarioDispositivoService {
 
   async getByUsuario(usuario_id: string) {
     try {
+      console.log(
+        `[UsuarioDispositivoService] Buscando dispositivos do usuário ${usuario_id}`,
+      );
+
       const dispositivos = await prisma.usuarioDispositivo.findMany({
         where: {
           usuario_id,
@@ -58,10 +76,15 @@ export class UsuarioDispositivoService {
         },
       });
 
+      console.log(
+        `[UsuarioDispositivoService] ✅ ${dispositivos.length} dispositivos encontrados`,
+      );
+
       return dispositivos;
     } catch (error) {
-      logger.error(
-        `[UsuarioDispositivoService] Erro ao buscar dispositivos do usuário ${usuario_id}: ${String(error)}`,
+      console.error(
+        `[UsuarioDispositivoService] ❌ Erro ao buscar dispositivos`,
+        error,
       );
 
       throw error;
@@ -76,8 +99,9 @@ export class UsuarioDispositivoService {
 
       return resultado;
     } catch (error) {
-      logger.error(
-        `[UsuarioDispositivoService] Erro ao remover vínculo ${id}: ${String(error)}`,
+      console.error(
+        `[UsuarioDispositivoService] ❌ Erro ao remover vínculo`,
+        error,
       );
 
       throw error;

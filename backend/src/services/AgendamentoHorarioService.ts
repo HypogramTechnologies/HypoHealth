@@ -1,4 +1,5 @@
 import prisma from "../database/db";
+import { logger } from "../utils/logger";
 
 export class AgendamentoHorarioService {
   async create(agendamento_id: string, horario: string, tx?: any) {
@@ -9,30 +10,16 @@ export class AgendamentoHorarioService {
       // Formato esperado: "HH:MM" ex: "10:30"
       const horarioFormatado = new Date(`2000-01-01T${horario}:00`);
 
-      console.log(
-        `[AgendamentoHorarioService] Criando horário: ${horario} para agendamento: ${agendamento_id}`,
-      );
-      console.log(
-        `[AgendamentoHorarioService] Data formatada:`,
-        horarioFormatado,
-      );
-
       const resultado = await db.agendamentoHorario.create({
         data: {
           agendamento_id,
           horario: horarioFormatado,
         },
       });
-
-      console.log(
-        `[AgendamentoHorarioService] ✅ Horário criado com sucesso:`,
-        resultado,
-      );
       return resultado;
     } catch (error) {
-      console.error(
-        `[AgendamentoHorarioService] ❌ Erro ao criar horário:`,
-        error,
+      logger.error(
+        `[AgendamentoHorarioService] Erro ao criar horário para agendamento ${agendamento_id}: ${String(error)}`,
       );
       throw error;
     }
@@ -42,17 +29,11 @@ export class AgendamentoHorarioService {
     const db = tx || prisma;
 
     try {
-      console.log(
-        `[AgendamentoHorarioService] Criando ${horarios.length} horários para agendamento: ${agendamento_id}`,
-      );
-
       const horariosCriados = [];
 
       // Criar sequencialmente em vez de Promise.all para melhor controle de transação
       for (const horario of horarios) {
         const horarioFormatado = new Date(`2000-01-01T${horario}:00`);
-
-        console.log(`[AgendamentoHorarioService] Criando horário: ${horario}`);
 
         const resultado = await db.agendamentoHorario.create({
           data: {
@@ -62,17 +43,11 @@ export class AgendamentoHorarioService {
         });
 
         horariosCriados.push(resultado);
-        console.log(`[AgendamentoHorarioService] ✅ Horário ${horario} criado`);
       }
-
-      console.log(
-        `[AgendamentoHorarioService] ✅ Total de ${horariosCriados.length} horários criados com sucesso`,
-      );
       return horariosCriados;
     } catch (error) {
-      console.error(
-        `[AgendamentoHorarioService] ❌ Erro ao criar múltiplos horários:`,
-        error,
+      logger.error(
+        `[AgendamentoHorarioService] Erro ao criar múltiplos horários para agendamento ${agendamento_id}: ${String(error)}`,
       );
       throw error;
     }

@@ -58,21 +58,34 @@ export const useStyles = (theme: ThemeType) => {
     },
 
     selectCard: {
-      height: 110,
-      borderRadius: 18,
-      backgroundColor:
-        theme.colors
-          .backgroundCard,
-      borderWidth: 1,
-      borderColor:
-        theme.colors
-          .border,
-      justifyContent:
-        'center',
-      alignItems:
-        'center',
-      marginBottom: 12,
-    },
+  flex: 1,
+
+  minWidth: 160,
+
+  height: 110,
+
+  borderRadius: 18,
+
+  backgroundColor:
+    theme.colors
+      .backgroundCard,
+
+  borderWidth: 1,
+
+  borderColor:
+    theme.colors
+      .border,
+
+  justifyContent:
+    'center',
+
+  alignItems:
+    'center',
+
+  marginBottom: 12,
+
+  paddingHorizontal: 16,
+},
 
     selectCardActive: {
       borderColor:

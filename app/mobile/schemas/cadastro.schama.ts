@@ -10,7 +10,7 @@ export const cadastroSchema = z
       .string()
       .email("Email inválido"),
 
-      dispositivo_id: z.string().min(1, "Informe o dispositivo"),
+      // dispositivo_id: z.string().min(1, "Informe o dispositivo"),
       
     senha: z
       .string()

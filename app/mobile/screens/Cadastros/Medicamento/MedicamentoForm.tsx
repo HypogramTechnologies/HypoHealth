@@ -5,16 +5,22 @@ import {
 } from 'react-native';
 
 import {
+  useNavigation,
+} from '@react-navigation/native';
+
+import {
   Controller,
 } from 'react-hook-form';
+
+import {
+  NativeStackScreenProps,
+} from '@react-navigation/native-stack';
 
 import { Form } from '../../../components/Form/Form';
 
 import { InputField } from '../../../components/Form/InputField';
 
-import { useTheme } from '../../../contexts/Theme/themeContext';
-
-import { useStyles } from './styles';
+import { Row } from '@/mobile/components/Form/Row';
 
 import { SelectCard } from '../../../components/MedicamentoForm/SelectCard';
 
@@ -24,13 +30,13 @@ import { ActionButton } from '../../../components/MedicamentoForm/ActionButton';
 
 import { TimeField } from '../../../components/MedicamentoForm/TimeField';
 
+import { useTheme } from '../../../contexts/Theme/themeContext';
+
+import { useStyles } from './styles';
+
 import { useMedicamentoForm } from '../../../hooks/Medicamento/useMedicamentoForm';
 
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-
 import { RootStackParamList } from '../../../navigation/types';
-
-import { Row } from '@/mobile/components/Form/Row';
 
 type Props =
   NativeStackScreenProps<
@@ -46,7 +52,11 @@ export function MedicamentoForm({
     medicamentoId,
   } = route.params;
 
-  const { theme } = useTheme();
+  const navigation =
+    useNavigation();
+
+  const { theme } =
+    useTheme();
 
   const s = useStyles(theme);
 
@@ -84,6 +94,18 @@ export function MedicamentoForm({
     mode,
     medicamentoId,
   );
+
+  async function handleSave(
+    data: any,
+  ) {
+    
+    const success =
+      await save(data);
+
+    if (success) {
+      navigation.goBack();
+    }
+  }
 
   return (
     <Form loading={screen.loading}>
@@ -157,11 +179,11 @@ export function MedicamentoForm({
         )}
         title={compartimentosDisponiveis.map(
           item =>
-           String( item.posicao)
+            String(item.posicao),
         )}
         description={compartimentosDisponiveis.map(
           item =>
-            item.dia_semana
+            item.dia_semana,
         )}
         selected={compartimentos}
         multiple
@@ -232,6 +254,12 @@ export function MedicamentoForm({
               8,
               12,
             ]}
+            title={[
+              '4',
+              '6',
+              '8',
+              '12',
+            ]}
             selected={[
               intervalo || 8,
             ]}
@@ -290,7 +318,9 @@ export function MedicamentoForm({
           icon="add"
           outlined
           onPress={() =>
-            addHorario('12:00')
+            addHorario(
+              '12:00',
+            )
           }
         />
       )}
@@ -303,13 +333,8 @@ export function MedicamentoForm({
         }
         icon="save-outline"
         onPress={handleSubmit(
-          save,
-          errors =>
-            console.log(
-              "ERROS:",
-              errors,
-            ),
-      )}
+          handleSave,
+        )}
       />
     </Form>
   );

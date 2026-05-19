@@ -7,7 +7,7 @@ export class MedicamentoService {
     data: CreateMedicamentoDTO,
   ) {
     const response = await api.post(
-      '/medic-agendamento',
+      '/completos',
       data,
     );
 

@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { AgendamentoService } from "../services/AgendamentoService";
+import { logger } from "../utils/logger";
 
 const agendamentoService = new AgendamentoService();
 
@@ -31,7 +32,9 @@ export class AgendamentoController {
       const novoAgendamento = await agendamentoService.create(req.body);
       return res.status(201).json(novoAgendamento);
     } catch (error) {
-      console.error(error);
+      logger.error(
+        `[AgendamentoController] Erro ao criar agendamento: ${String(error)}`,
+      );
       return res.status(500).json({ erro: "Erro ao criar agendamento." });
     }
   }
@@ -41,7 +44,9 @@ export class AgendamentoController {
       const agendamentos = await agendamentoService.getAll();
       return res.status(200).json(agendamentos);
     } catch (error) {
-      console.error(error);
+      logger.error(
+        `[AgendamentoController] Erro ao buscar agendamentos: ${String(error)}`,
+      );
       return res.status(500).json({ erro: "Erro ao buscar agendamentos." });
     }
   }
@@ -57,7 +62,9 @@ export class AgendamentoController {
 
       return res.status(200).json(agendamento);
     } catch (error) {
-      console.error(error);
+      logger.error(
+        `[AgendamentoController] Erro ao buscar agendamento por id: ${String(error)}`,
+      );
       return res.status(500).json({ erro: "Erro ao buscar agendamento." });
     }
   }
@@ -71,7 +78,9 @@ export class AgendamentoController {
       );
       return res.status(200).json(agendamentoAtualizado);
     } catch (error) {
-      console.error(error);
+      logger.error(
+        `[AgendamentoController] Erro ao atualizar agendamento: ${String(error)}`,
+      );
       return res.status(500).json({
         erro: "Erro ao atualizar agendamento. Verifique se o ID existe.",
       });
@@ -84,7 +93,9 @@ export class AgendamentoController {
       await agendamentoService.delete(String(id));
       return res.status(204).send();
     } catch (error) {
-      console.error(error);
+      logger.error(
+        `[AgendamentoController] Erro ao deletar agendamento: ${String(error)}`,
+      );
       return res.status(500).json({ erro: "Erro ao deletar agendamento." });
     }
   }

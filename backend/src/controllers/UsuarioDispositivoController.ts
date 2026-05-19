@@ -41,7 +41,7 @@ export class UsuarioDispositivoController {
 
   /**
    * POST /usuario-dispositivo/responsavel
-   * ⭐ Criar responsável (busca por email primeiro)
+   * Criar responsável (busca por email primeiro)
    */
   async createResponsavel(req: Request, res: Response) {
     try {

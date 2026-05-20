@@ -19,6 +19,10 @@ class AgendadorCronService {
       const minutoAtual = agora.minute.toString().padStart(2, "0");
       const horarioAtual = `${horaAtual}:${minutoAtual}:00`;
 
+      cron.schedule("* * * * *", async () => {
+        await medicationIntakeService.monitorarAtrasos();
+      });
+
       const diasMap: Record<number, string> = {
         1: "SEGUNDA",
         2: "TERCA",

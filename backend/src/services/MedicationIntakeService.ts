@@ -17,12 +17,76 @@ export class MedicationIntakeService {
           status: StatusRetirada.PENDENTE,
         },
       });
+
       return registro;
     } catch (error) {
       logger.error(
         `[MedicationIntakeService] Erro ao criar registro pendente: ${String(error)}`,
       );
+
       throw error;
+    }
+  }
+
+  //Monitoramento automático de atrasos
+  async monitorarAtrasos() {
+    try {
+      const agora = new Date();
+
+      // Buscar retiradas pendentes ou atrasadas
+      const retiradas = await prisma.retiradaMedicamento.findMany({
+        where: {
+          status: {
+            in: [
+              StatusRetirada.PENDENTE,
+              StatusRetirada.ATRASADO,
+            ],
+          },
+        },
+      });
+
+      for (const retirada of retiradas) {
+        const diferencaMin =
+          (agora.getTime() -
+            retirada.horario_programado.getTime()) /
+          1000 /
+          60;
+
+        let novoStatus: StatusRetirada | null = null;
+
+        //Mais de 2 horas sem retirada
+        if (diferencaMin >= 120) {
+          novoStatus = StatusRetirada.NAO_RETIRADO;
+        }
+
+        //Mais de 15 minutos de atraso
+        else if (
+          diferencaMin >= 15 &&
+          retirada.status === StatusRetirada.PENDENTE
+        ) {
+          novoStatus = StatusRetirada.ATRASADO;
+        }
+
+        //Atualizar apenas se necessário
+        if (novoStatus && novoStatus !== retirada.status) {
+          await prisma.retiradaMedicamento.update({
+            where: {
+              id: retirada.id,
+            },
+            data: {
+              status: novoStatus,
+            },
+          });
+
+          logger.warn(
+            `[MedicationIntakeService] Retirada ${retirada.id} marcada como ${novoStatus}`,
+          );
+        }
+      }
+    } catch (error) {
+      logger.error(
+        `[MedicationIntakeService] Erro ao monitorar atrasos: ${String(error)}`,
+      );
     }
   }
 
@@ -37,6 +101,7 @@ export class MedicationIntakeService {
         logger.warn(
           `[MedicationIntakeService] Dispositivo reportou falha na abertura: ${payload.mensagem}`,
         );
+
         return;
       }
 
@@ -59,19 +124,28 @@ export class MedicationIntakeService {
         logger.warn(
           `[MedicationIntakeService] Compartimento ${payload.compartimento} não encontrado para o dispositivo ${mac}`,
         );
+
         return;
       }
 
-      // Buscar a última retirada que esteja PENDENTE para este compartimento específico
+      // Buscar a última retirada pendente ou atrasada para este compartimento específico
       const retirada = await prisma.retiradaMedicamento.findFirst({
         where: {
-          status: StatusRetirada.PENDENTE,
+          status: {
+            in: [
+              StatusRetirada.PENDENTE,
+              StatusRetirada.ATRASADO,
+              StatusRetirada.NAO_RETIRADO
+            ],
+          },
+
           agendamentoHorario: {
             agendamento: {
               compartimento_id: compartimento.id,
             },
           },
         },
+
         include: {
           agendamentoHorario: {
             include: {
@@ -79,6 +153,7 @@ export class MedicationIntakeService {
             },
           },
         },
+
         orderBy: {
           horario_programado: "desc", // Garante que pega o agendamento mais recente da fila
         },
@@ -86,33 +161,33 @@ export class MedicationIntakeService {
 
       if (!retirada) {
         logger.warn(
-          `[MedicationIntakeService] Nenhuma retirada PENDENTE encontrada para o MAC ${mac} no compartimento ${payload.compartimento}`,
+          `[MedicationIntakeService] Nenhuma retirada pendente encontrada para o MAC ${mac} no compartimento ${payload.compartimento}`,
         );
+
         return;
       }
 
-      const atrasoMs =
-        dataEvento.getTime() - retirada.horario_programado.getTime();
-      const atrasoMin = atrasoMs / 1000 / 60;
+      //Manter ATRASADO caso o medicamento tenha sido tomado fora do horário
+      const status =
+        retirada.status === StatusRetirada.ATRASADO
+          ? StatusRetirada.ATRASADO
+          : StatusRetirada.RETIRADO;
 
-      //Classificação inteligente do evento
-      let status: StatusRetirada;
-      if (atrasoMin <= 15) {
-        status = StatusRetirada.RETIRADO;
-      } else {
-        status = StatusRetirada.ATRASADO;
-      }
-
-      // Atualizar o registro PENDENTE existente
+      // Atualizar o registro existente
       await prisma.retiradaMedicamento.update({
         where: {
           id: retirada.id,
         },
+
         data: {
           horario_retirada: dataEvento,
           status,
         },
       });
+
+      logger.info(
+        `[MedicationIntakeService] Retirada ${retirada.id} registrada como ${status}`,
+      );
     } catch (error) {
       logger.error(
         `[MedicationIntakeService] Erro ao processar retirada: ${String(error)}`,

@@ -37,20 +37,14 @@ export class MedicationIntakeService {
       const retiradas = await prisma.retiradaMedicamento.findMany({
         where: {
           status: {
-            in: [
-              StatusRetirada.PENDENTE,
-              StatusRetirada.ATRASADO,
-            ],
+            in: [StatusRetirada.PENDENTE, StatusRetirada.ATRASADO],
           },
         },
       });
 
       for (const retirada of retiradas) {
         const diferencaMin =
-          (agora.getTime() -
-            retirada.horario_programado.getTime()) /
-          1000 /
-          60;
+          (agora.getTime() - retirada.horario_programado.getTime()) / 1000 / 60;
 
         let novoStatus: StatusRetirada | null = null;
 
@@ -135,7 +129,7 @@ export class MedicationIntakeService {
             in: [
               StatusRetirada.PENDENTE,
               StatusRetirada.ATRASADO,
-              StatusRetirada.NAO_RETIRADO
+              StatusRetirada.NAO_RETIRADO,
             ],
           },
 

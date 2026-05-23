@@ -47,80 +47,66 @@ export class UsuarioDispositivoController {
    */
   async createResponsavel(req: Request, res: Response) {
     console.log(req.body);
-  try {
-    const {
-      nome,
-      email,
-      senha,
-      dispositivo_id,
-    } = req.body;
+    try {
+      const { nome, email, senha, dispositivo_id } = req.body;
 
-    if (!email || !dispositivo_id) {
-      return res.status(400).json({
-        erro:
-          "email e dispositivo_id são obrigatórios.",
-      });
-    }
-
-    // Verifica se usuário já existe
-    let usuario =
-      await usuarioService.getByEmail(email);
-
-    // Se não existir, cria automaticamente
-    if (!usuario) {
-      if (!nome || !senha) {
+      if (!email || !dispositivo_id) {
         return res.status(400).json({
-          erro:
-            "nome e senha são obrigatórios para novo responsável.",
+          erro: "email e dispositivo_id são obrigatórios.",
         });
       }
 
-      usuario = await usuarioService.create({
-        nome,
-        email,
-        senha,
-        dispositivo_id,
-        tipo_acesso: "RESPONSAVEL",
-      });
+      // Verifica se usuário já existe
+      let usuario = await usuarioService.getByEmail(email);
 
-      return res.status(201).json(usuario);
-    }
+      // Se não existir, cria automaticamente
+      if (!usuario) {
+        if (!nome || !senha) {
+          return res.status(400).json({
+            erro: "nome e senha são obrigatórios para novo responsável.",
+          });
+        }
 
-    // Verifica se já possui vínculo
-    const jaVinculado =
-      await usuarioDispositivoService.getByUsuario(
+        usuario = await usuarioService.create({
+          nome,
+          email,
+          senha,
+          dispositivo_id,
+          tipo_acesso: "RESPONSAVEL",
+        });
+
+        return res.status(201).json(usuario);
+      }
+
+      // Verifica se já possui vínculo
+      const jaVinculado = await usuarioDispositivoService.getByUsuario(
         usuario.id,
-        
       );
 
-    if (jaVinculado) {
-      return res.status(400).json({
-        erro:
-          "Usuário já vinculado ao dispositivo.",
-      });
-    }
+      if (jaVinculado) {
+        return res.status(400).json({
+          erro: "Usuário já vinculado ao dispositivo.",
+        });
+      }
 
-    // Apenas cria vínculo
-    const resultado =
-      await usuarioDispositivoService.create({
+      // Apenas cria vínculo
+      const resultado = await usuarioDispositivoService.create({
         usuario_id: usuario.id,
         dispositivo_id,
         tipo_acesso: "RESPONSAVEL",
       });
 
-    return res.status(201).json(resultado);
-  } catch (error: any) {
-    logger.error(
-      `[UsuarioDispositivoController] Erro ao cadastrar responsável: ${String(error)}`,
-    );
+      return res.status(201).json(resultado);
+    } catch (error: any) {
+      logger.error(
+        `[UsuarioDispositivoController] Erro ao cadastrar responsável: ${String(error)}`,
+      );
 
-    return res.status(400).json({
-      erro:
-        error.message ||
-        "Erro ao cadastrar responsável.",
-    });
+      return res.status(400).json({
+        erro: error.message || "Erro ao cadastrar responsável.",
+      });
+    }
   }
-}
 
   /**
    * GET /usuario-dispositivo/dispositivo/:dispositivo_id

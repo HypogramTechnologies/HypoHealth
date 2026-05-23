@@ -56,9 +56,7 @@ export class UsuarioService {
     };
   }
 
-   async getByEmail(
-    email: string,
-  ): Promise<UsuarioResponseDTO | null> {
+  async getByEmail(email: string): Promise<UsuarioResponseDTO | null> {
     const usuario = await prisma.usuario.findUnique({
       where: { email },
 
@@ -83,7 +81,7 @@ export class UsuarioService {
       })),
     };
   }
-  
+
   async getAll(): Promise<UsuarioResponseDTO[]> {
     const usuarios = await prisma.usuario.findMany({
       orderBy: { criado_em: "desc" },

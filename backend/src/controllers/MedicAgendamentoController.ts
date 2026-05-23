@@ -10,11 +10,8 @@ const medicService = new MedicamentoService();
 const agendamentoService = new AgendamentoService();
 
 export class MedicAgendamentoController {
-
   async createSimultaneo(req: Request, res: Response) {
-
     try {
-
       const {
         nome,
         dosagem,
@@ -31,17 +28,10 @@ export class MedicAgendamentoController {
 
         horario,
         horarios,
-
       } = req.body;
 
       // CAMPOS OBRIGATÓRIOS
-      if (
-        !nome ||
-        !dosagem ||
-        !compartimento_ids ||
-        !tipo ||
-        !data_inicio
-      ) {
+      if (!nome || !dosagem || !compartimento_ids || !tipo || !data_inicio) {
         return res.status(400).json({
           erro: "Campos obrigatórios faltando.",
         });
@@ -49,7 +39,6 @@ export class MedicAgendamentoController {
 
       // VALIDAÇÃO PARA HORARIO_FIXO
       if (tipo === "HORARIO_FIXO") {
-
         if (!horarios || horarios.length === 0) {
           return res.status(400).json({
             erro: "HORARIO_FIXO exige 'horarios'.",
@@ -59,7 +48,6 @@ export class MedicAgendamentoController {
 
       // VALIDAÇÃO PARA INTERVALO
       if (tipo === "INTERVALO") {
-
         if (!horario) {
           return res.status(400).json({
             erro: "INTERVALO exige 'horario'.",
@@ -74,7 +62,6 @@ export class MedicAgendamentoController {
       }
 
       const resultado = await prisma.$transaction(async (tx) => {
-
         // 1 - CRIAR MEDICAMENTO
         const novoMedicamento = await medicService.create(
           {
@@ -82,7 +69,7 @@ export class MedicAgendamentoController {
             dosagem,
             descricao,
           },
-          tx
+          tx,
         );
 
         // 2 - CRIAR AGENDAMENTO
@@ -102,7 +89,7 @@ export class MedicAgendamentoController {
             horario,
             horarios,
           },
-          tx
+          tx,
         );
 
         return {
@@ -112,12 +99,8 @@ export class MedicAgendamentoController {
       });
 
       return res.status(201).json(resultado);
-
     } catch (error) {
-
-      logger.error(
-        `[MedicAgendamentoController] ${String(error)}`
-      );
+      logger.error(`[MedicAgendamentoController] ${String(error)}`);
 
       return res.status(500).json({
         erro: "Erro na operação simultânea.",

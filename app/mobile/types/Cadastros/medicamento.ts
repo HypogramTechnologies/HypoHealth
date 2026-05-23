@@ -55,7 +55,7 @@ export type CreateMedicamentoDTO = {
 
   descricao: string;
 
-  compartimento_id: string;
+  compartimento_ids: string[];
 
   tipo: TipoMedicamento;
 

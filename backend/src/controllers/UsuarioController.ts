@@ -30,6 +30,7 @@ export class UsuarioController {
     }
   }
 
+  
   async getAll(req: Request, res: Response) {
     const usuarios = await service.getAll();
     return res.json(usuarios);

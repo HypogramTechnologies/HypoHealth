@@ -2,7 +2,10 @@ export interface CreateUsuarioDTO {
   nome: string;
   email: string;
   senha: string;
-  dispositivo_id: string;
+
+  dispositivo_id?: string;
+
+  tipo_acesso?: "PROPRIETARIO" | "RESPONSAVEL";
 }
 
 export interface UpdateUsuarioDTO {

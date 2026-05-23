@@ -56,6 +56,34 @@ export class UsuarioService {
     };
   }
 
+   async getByEmail(
+    email: string,
+  ): Promise<UsuarioResponseDTO | null> {
+    const usuario = await prisma.usuario.findUnique({
+      where: { email },
+
+      include: {
+        dispositivos: true,
+      },
+    });
+
+    if (!usuario) {
+      return null;
+    }
+
+    return {
+      id: usuario.id,
+      nome: usuario.nome,
+      email: usuario.email,
+      criado_em: usuario.criado_em,
+
+      dispositivos: usuario.dispositivos.map((d) => ({
+        id: d.id,
+        tipo: d.tipo_acesso,
+      })),
+    };
+  }
+  
   async getAll(): Promise<UsuarioResponseDTO[]> {
     const usuarios = await prisma.usuario.findMany({
       orderBy: { criado_em: "desc" },

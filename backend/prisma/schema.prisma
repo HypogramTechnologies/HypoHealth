@@ -60,6 +60,7 @@ model Medicamento {
   @@map("medicamentos")
 }
 
+
 model MedicamentoCompartimento {
   id               String         @id @default(uuid()) @db.Uuid
 

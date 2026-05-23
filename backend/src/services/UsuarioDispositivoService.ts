@@ -78,7 +78,7 @@ export class UsuarioDispositivoService {
   }
 
   /**
-   * ⭐ NOVO: Buscar usuário por email
+   * NOVO: Buscar usuário por email
    */
   async getUsuarioByEmail(email: string) {
     try {

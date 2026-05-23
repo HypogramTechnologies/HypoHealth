@@ -1,56 +1,156 @@
 import { api } from "./api";
 
-interface ResponsavelResponse {
-  id: string;
-  usuario_id: string;
+interface AdicionarResponsavelDTO {
+  nome: string;
+
+  email: string;
+
+  senha: string;
+
   dispositivo_id: string;
-  tipo_acesso: string;
-  criado_em: string;
 }
+
+interface AtualizarResponsavelDTO {
+  nome: string;
+
+  email: string;
+
+  senha?: string;
+}
+
+export interface ResponsavelResponse {
+  id: string;
+
+  usuario_id: string;
+
+  dispositivo_id: string;
+
+  tipo_acesso: string;
+
+  criado_em: string;
+
+  usuario?: {
+    id: string;
+    nome: string;
+    email: string;
+  };
+}
+
 
 export class ResponsavelService {
-  // Adicionar responsável a um dispositivo
+  /**
+   * Adicionar responsável
+   */
   async adicionarResponsavel(
-    usuarioId: string,
-    dispositivoId: string
+    data: AdicionarResponsavelDTO,
   ): Promise<ResponsavelResponse> {
     try {
-      const response = await api.post("/usuario-dispositivo/responsavel", {
-        usuario_id: usuarioId,
-        dispositivo_id: dispositivoId,
-      });
+      const response = await api.post(
+        "/usuario-dispositivo/responsavel",
+        {
+          nome: data.nome,
+          email: data.email,
+          senha: data.senha,
+          dispositivo_id:
+            data.dispositivo_id,
+        },
+      );
+
       return response.data;
-    } catch (error) {
-      console.error("Erro ao adicionar responsável:", error);
-      throw error;
+    } catch (error: any) {
+      console.error(
+        "Erro ao adicionar responsável:",
+        error,
+      );
+
+      throw (
+        error?.response?.data || error
+      );
     }
   }
 
-  // Listar todos os responsáveis de um dispositivo
+  /**
+ * Atualizar responsável
+ */
+async atualizarResponsavel(
+  usuarioId: string,
+  data: AtualizarResponsavelDTO,
+): Promise<ResponsavelResponse> {
+  try {
+    const response = await api.put(
+      `/usuarios/${usuarioId}`,
+      {
+        nome: data.nome,
+
+        email: data.email,
+
+        senha: data.senha,
+      },
+    );
+
+    return response.data;
+  } catch (error: any) {
+    console.error(
+      "Erro ao atualizar responsável:",
+      error,
+    );
+
+    throw (
+      error?.response?.data || error
+    );
+  }
+}
+
+  /**
+   * Listar responsáveis por dispositivo
+   */
   async listarResponsaveisPorDispositivo(
-    dispositivoId: string
+    dispositivoId: string,
   ): Promise<ResponsavelResponse[]> {
     try {
-      const response = await api.get(`/usuario-dispositivo/${dispositivoId}`);
-      // Filtrar apenas responsáveis
-      return response.data.filter(
-        (item: ResponsavelResponse) => item.tipo_acesso === "RESPONSAVEL"
+      const response = await api.get(
+        `/usuario-dispositivo/dispositivo/${dispositivoId}`,
       );
-    } catch (error) {
-      console.error("Erro ao listar responsáveis:", error);
-      throw error;
+
+      return response.data.filter(
+        (item: ResponsavelResponse) =>
+          item.tipo_acesso ===
+          "RESPONSAVEL",
+      );
+    } catch (error: any) {
+      console.error(
+        "Erro ao listar responsáveis:",
+        error,
+      );
+
+      throw (
+        error?.response?.data || error
+      );
     }
   }
 
-  // Remover um responsável
-  async removerResponsavel(usuarioDispositivoId: string): Promise<void> {
+  /**
+   * Remover responsável
+   */
+  async removerResponsavel(
+    usuarioDispositivoId: string,
+  ): Promise<void> {
     try {
-      await api.delete(`/usuario-dispositivo/${usuarioDispositivoId}`);
-    } catch (error) {
-      console.error("Erro ao remover responsável:", error);
-      throw error;
+      await api.delete(
+        `/usuario-dispositivo/${usuarioDispositivoId}`,
+      );
+    } catch (error: any) {
+      console.error(
+        "Erro ao remover responsável:",
+        error,
+      );
+
+      throw (
+        error?.response?.data || error
+      );
     }
   }
 }
 
-export const responsavelService = new ResponsavelService();
+export const responsavelService =
+  new ResponsavelService();

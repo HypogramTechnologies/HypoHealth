@@ -20,27 +20,15 @@ import { Mode } from "../../types/Outros/mode";
 import { useScreenMode } from "../Outros/useScreenMode";
 
 import { useAuth } from "../Auth/useAuth";
+import { logger } from "react-native-reanimated/lib/typescript/common/logger";
 
 export function useMedicamentoForm(
   mode: Mode,
   medicamentoId?: string,
 ) {
-  console.log(
-    "HOOK useMedicamentoForm INICIADO",
-  );
-
-  console.log("MODE:", mode);
-
-  console.log(
-    "MEDICAMENTO ID:",
-    medicamentoId,
-  );
 
   const screen = useScreenMode(mode);
-
   const { usuario } = useAuth();
-
-  console.log("USUARIO:", usuario);
 
   const {
     isCreate,
@@ -96,23 +84,10 @@ export function useMedicamentoForm(
 
   const horarios = watch("horarios");
 
-  console.log("TIPO:", tipo);
-
-  console.log(
-    "COMPARTIMENTOS:",
-    compartimentos,
-  );
-
-  console.log("HORARIOS:", horarios);
-
   const toggleCompartimento = (
     id: string | number,
   ) => {
-    console.log(
-      "TOGGLE COMPARTIMENTO:",
-      id,
-    );
-
+    
     const compartimentoId =
       String(id);
 
@@ -140,10 +115,6 @@ export function useMedicamentoForm(
   const addHorario = (
     horario = "08:00",
   ) => {
-    console.log(
-      "ADICIONANDO HORARIO:",
-      horario,
-    );
 
     setValue("horarios", [
       ...horarios,
@@ -154,10 +125,6 @@ export function useMedicamentoForm(
   const removeHorario = (
     index: number,
   ) => {
-    console.log(
-      "REMOVENDO HORARIO:",
-      index,
-    );
 
     setValue(
       "horarios",
@@ -172,14 +139,7 @@ export function useMedicamentoForm(
     index: number,
     value: string,
   ) => {
-    console.log(
-      "ATUALIZANDO HORARIO:",
-      {
-        index,
-        value,
-      },
-    );
-
+   
     const novaLista = [...horarios];
 
     novaLista[index] = value;
@@ -194,14 +154,7 @@ export function useMedicamentoForm(
     inicio = "08:00",
     h = 8,
   ) => {
-    console.log(
-      "GERANDO HORARIOS:",
-      {
-        inicio,
-        h,
-      },
-    );
-
+   
     const [hora, min] = inicio
       .split(":")
       .map(Number);
@@ -225,19 +178,11 @@ export function useMedicamentoForm(
       );
     }
 
-    console.log(
-      "HORARIOS GERADOS:",
-      lista,
-    );
-
     setValue("horarios", lista);
   };
 
   useEffect(() => {
-    console.log(
-      "EFFECT TIPO/INTERVALO",
-    );
-
+    
     if (tipo === "INTERVALO") {
       gerarHorarios(
         horarios[0] || "08:00",
@@ -256,7 +201,6 @@ export function useMedicamentoForm(
       data.horarios[0];
 
     if (mode === "create") {
-      for (const compartimentoId of data.compartimentos) {
 
         const payload = {
           nome:
@@ -268,8 +212,8 @@ export function useMedicamentoForm(
           descricao:
             data.medicamentoDescricao,
 
-          compartimento_id:
-            compartimentoId,
+          compartimento_ids:
+            data.compartimentos,
 
           tipo: data.tipo,
 
@@ -292,15 +236,10 @@ export function useMedicamentoForm(
               : undefined,
         };
 
-        console.log(
-          "BODY POST:",
-          payload,
-        );
-
         await MedicamentoService.create(
           payload,
         );
-      }
+    
     } else if (medicamentoId) {
 
       const payload = {
@@ -331,11 +270,7 @@ export function useMedicamentoForm(
             : undefined,
       };
 
-      console.log(
-        "BODY UPDATE:",
-        payload,
-      );
-
+     
       await MedicamentoService.update(
         medicamentoId,
         payload,
@@ -354,24 +289,13 @@ export function useMedicamentoForm(
     const carregarCompartimentos =
       async () => {
         try {
-          console.log(
-            "CARREGANDO COMPARTIMENTOS",
-          );
-
+         
           const dispositivoId =
             usuario?.dispositivos?.[0]
               ?.id;
 
-          console.log(
-            "DISPOSITIVO ID:",
-            dispositivoId,
-          );
-
           if (!dispositivoId) {
-            console.log(
-              "DISPOSITIVO ID NÃO ENCONTRADO",
-            );
-
+          
             return;
           }
 
@@ -380,17 +304,12 @@ export function useMedicamentoForm(
               dispositivoId,
             );
 
-          console.log(
-            "COMPARTIMENTOS RECEBIDOS:",
-            dados,
-          );
-
           setCompartimentosDisponiveis(
             dados,
           );
         } catch (error) {
-          console.log(
-            "ERRO AO CARREGAR COMPARTIMENTOS:",
+          console.error(
+            "Erro ao carregar compartimentos:",
             error,
           );
         }
@@ -402,47 +321,22 @@ export function useMedicamentoForm(
   useEffect(() => {
     const carregarMedicamento =
       async () => {
-        console.log(
-          "INICIANDO CARREGAMENTO MEDICAMENTO",
-        );
-
-        console.log(
-          "IS CREATE:",
-          isCreate,
-        );
-
-        console.log(
-          "MEDICAMENTO ID:",
-          medicamentoId,
-        );
-
+       
         if (
           !medicamentoId ||
           isCreate
         ) {
-          console.log(
-            "NÃO VAI CARREGAR MEDICAMENTO",
-          );
-
+          
           return;
         }
 
         try {
           setLoading(true);
 
-          console.log(
-            "BUSCANDO MEDICAMENTO...",
-          );
-
           const medicamento =
             await MedicamentoService.getById(
               medicamentoId,
             );
-
-          console.log(
-            "MEDICAMENTO RECEBIDO:",
-            medicamento,
-          );
 
           const resetData = {
             medicamentoNome:
@@ -455,9 +349,9 @@ export function useMedicamentoForm(
               medicamento.descricao,
 
             compartimentos:
-              medicamento.compartimento_id
+              medicamento.compartimento_ids
                 ? [
-                    medicamento.compartimento_id,
+                    ...medicamento.compartimento_ids,
                   ]
                 : [],
 
@@ -478,26 +372,17 @@ export function useMedicamentoForm(
                   : ["08:00"],
           };
 
-          console.log(
-            "RESET DATA:",
-            resetData,
-          );
-
           reset(resetData);
 
-          console.log(
-            "FORM RESETADO",
-          );
         } catch (error) {
-          console.log(
-            "ERRO AO CARREGAR MEDICAMENTO:",
-            error,
+          console.error(
+            `[useMedicamentoForm] Erro ao carregar medicamento: ${String(
+              error,
+            )}`,
           );
+          
         } finally {
-          console.log(
-            "FINALIZANDO LOADING GET",
-          );
-
+        
           setLoading(false);
         }
       };

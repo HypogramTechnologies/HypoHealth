@@ -2,7 +2,12 @@ import prisma from "../database/db";
 
 export class MedicamentoService {
   async create(
-    dados: { nome: string; dosagem: string; descricao?: string },
+    dados: {
+      nome: string;
+      dosagem: string;
+      descricao?: string;
+      usuario_id: string;
+    },
     tx?: any,
   ) {
     const db = tx || prisma;

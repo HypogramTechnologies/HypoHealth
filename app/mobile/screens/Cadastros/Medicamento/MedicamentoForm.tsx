@@ -27,7 +27,7 @@ import { SelectCard } from '../../../components/MedicamentoForm/SelectCard';
 import { NumberSelector } from '../../../components/MedicamentoForm/NumberSelector';
 
 import { ActionButton } from '../../../components/MedicamentoForm/ActionButton';
-
+import { DateField } from '../../../components/Form/InputDate';
 import { TimeField } from '../../../components/MedicamentoForm/TimeField';
 
 import { useTheme } from '../../../contexts/Theme/themeContext';
@@ -169,6 +169,20 @@ export function MedicamentoForm({
         )}
       />
 
+      <DateField
+        control={control}
+        name="data_inicio"
+        label="Data de início"
+        errors={errors}
+      />
+
+      <DateField
+        control={control}
+        name="data_fim"
+        label="Data de fim"
+        errors={errors}
+      />
+
       <Text style={s.section}>
         Compartimentos
       </Text>
@@ -278,38 +292,36 @@ export function MedicamentoForm({
       </Text>
 
       {horarios.map(
-        (hora, index) => (
-          <TimeField
-            key={index}
-            value={hora}
-            onChange={value =>
-              updateHorario(
+  (hora, index) => (
+    <TimeField
+      key={index}
+      value={hora}
+      onChange={value =>
+        updateHorario(
+          index,
+          value,
+        )
+      }
+      onRemove={
+        tipo ===
+          'HORARIO_FIXO' &&
+        horarios.length > 1
+          ? () =>
+              removeHorario(
                 index,
-                value,
               )
-            }
-            onRemove={
-              tipo ===
-                'HORARIO_FIXO' &&
-              horarios.length > 1
-                ? () =>
-                    removeHorario(
-                      index,
-                    )
-                : undefined
-            }
-          />
-        ),
-      )}
-
-      {errors.horarios && (
-        <Text style={s.error}>
-          {
-            errors.horarios
-              .message
-          }
-        </Text>
-      )}
+          : undefined
+      }
+      error={
+        errors.horarios?.[
+          index
+        ]?.message as
+          | string
+          | undefined
+      }
+    />
+  ),
+)}
 
       {tipo ===
         'HORARIO_FIXO' && (

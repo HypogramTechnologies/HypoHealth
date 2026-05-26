@@ -16,6 +16,7 @@ export class MedicAgendamentoController {
         nome,
         dosagem,
         descricao,
+        usuario_id,
 
         compartimento_ids,
 
@@ -68,6 +69,7 @@ export class MedicAgendamentoController {
             nome,
             dosagem,
             descricao,
+            usuario_id,
           },
           tx,
         );
@@ -104,6 +106,165 @@ export class MedicAgendamentoController {
 
       return res.status(500).json({
         erro: "Erro na operação simultânea.",
+      });
+    }
+  }
+
+  async updateSimultaneo(req: Request, res: Response) {
+    try {
+      const id = String(req.params.id);
+
+      const {
+        nome,
+        dosagem,
+        descricao,
+        usuario_id,
+        compartimento_ids,
+
+        tipo,
+
+        data_inicio,
+        data_fim,
+
+        intervalo_horas,
+
+        horario,
+        horarios,
+      } = req.body;
+
+      const medicamentoExistente = await prisma.medicamento.findUnique({
+        where: { id },
+
+        include: {
+          agendamentos: true,
+        },
+      });
+
+      if (!medicamentoExistente) {
+        return res.status(404).json({
+          erro: "Medicamento não encontrado.",
+        });
+      }
+
+      const resultado = await prisma.$transaction(async (tx) => {
+        // 1 - ATUALIZA MEDICAMENTO
+        const medicamentoAtualizado = await tx.medicamento.update({
+          where: { id },
+
+          data: {
+            nome,
+            dosagem,
+            descricao,
+          },
+        });
+
+        // 2 - DELETA AGENDAMENTOS ANTIGOS
+        await tx.agendamento.deleteMany({
+          where: {
+            medicamento_id: id,
+          },
+        });
+
+        // 3 - RECRIA AGENDAMENTOS
+        const novosAgendamentos = await agendamentoService.create(
+          {
+            medicamento_id: id,
+
+            compartimento_ids,
+
+            tipo,
+
+            data_inicio,
+            data_fim,
+
+            intervalo_horas,
+
+            horario,
+            horarios,
+          },
+          tx,
+        );
+
+        return {
+          medicamento: medicamentoAtualizado,
+          agendamentos: novosAgendamentos,
+        };
+      });
+
+      return res.json(resultado);
+    } catch (error) {
+      logger.error(`[MedicAgendamentoController] ${String(error)}`);
+
+      return res.status(500).json({
+        erro: "Erro ao atualizar medicamento/agendamento.",
+      });
+    }
+  }
+
+  async getById(req: Request, res: Response) {
+    try {
+      const id = String(req.params.id);
+      console.log("ID recebido no getById no controller:", id);
+      const medicamento = await prisma.medicamento.findUnique({
+        where: { id },
+
+        include: {
+          agendamentos: {
+            include: {
+              compartimento: true,
+
+              horarios: {
+                orderBy: {
+                  horario: "asc",
+                },
+              },
+            },
+          },
+        },
+      });
+
+      if (!medicamento) {
+        return res.status(404).json({
+          erro: "Medicamento não encontrado.",
+        });
+      }
+
+      const primeiroAgendamento = medicamento.agendamentos[0];
+      console.log("Primeiro agendamento encontrado:", primeiroAgendamento);
+      const resposta = {
+        id: medicamento.id,
+
+        nome: medicamento.nome,
+        dosagem: medicamento.dosagem,
+        descricao: medicamento.descricao,
+
+        data_inicio: primeiroAgendamento.data_inicio,
+        data_fim: primeiroAgendamento.data_fim,
+
+        tipo: primeiroAgendamento?.tipo,
+
+        intervalo_horas: primeiroAgendamento?.intervalo_horas,
+
+        compartimento_ids: medicamento.agendamentos.map(
+          (a) => a.compartimento_id,
+        ),
+
+        horarios:
+          primeiroAgendamento?.horarios.map((h) =>
+            h.horario.toLocaleTimeString("pt-BR", {
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: false,
+            }),
+          ) || [],
+      };
+
+      return res.json(resposta);
+    } catch (error) {
+      logger.error(`[MedicAgendamentoController] ${String(error)}`);
+
+      return res.status(500).json({
+        erro: "Erro ao buscar medicamento/agendamento.",
       });
     }
   }

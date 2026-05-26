@@ -8,6 +8,8 @@ export interface Medicamento {
   medicamentoDosagem: string;
 
   medicamentoCriadoEm: string;
+
+  
 }
 
 export interface MedicamentoDetalhado {
@@ -16,6 +18,8 @@ export interface MedicamentoDetalhado {
   nome: string;
 
   descricao: string;
+
+  usuario_id?: string;
 
   dosagem: string;
 
@@ -42,6 +46,8 @@ export interface MedicamentoFiltro {
   medicamentoDosagem?: string;
 
   medicamentoDescricao?: string;
+
+  usuario_id?: string;
 }
 
 export type TipoMedicamento =
@@ -54,6 +60,8 @@ export type CreateMedicamentoDTO = {
   dosagem: string;
 
   descricao: string;
+
+  usuario_id?: string;
 
   compartimento_ids: string[];
 
@@ -76,6 +84,8 @@ export type UpdateMedicamentoDTO = {
   dosagem?: string;
 
   descricao?: string;
+
+  usuario_id?: string;
 
   compartimento_id?: string;
 

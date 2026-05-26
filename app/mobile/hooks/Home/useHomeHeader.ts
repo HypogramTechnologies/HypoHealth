@@ -1,23 +1,36 @@
-import { useEffect, useState } from "react";
+import { useState, useCallback } from "react";
+
+import {
+  useFocusEffect,
+} from "@react-navigation/native";
 
 import { buscarHomeHeader } from "../../services/homeService";
 
 export function useHomeHeader() {
-  const [dados, setDados] = useState<any>(null);
+
+  const [dados, setDados] =
+    useState<any>(null);
 
   async function carregar() {
     try {
-      const response = await buscarHomeHeader();
+
+      const response =
+        await buscarHomeHeader();
 
       setDados(response);
+
     } catch (error) {
       console.log(error);
     }
   }
 
-  useEffect(() => {
-    carregar();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+
+      carregar();
+
+    }, []),
+  );
 
   return {
     dados,

@@ -106,6 +106,7 @@ export class MedicAgendamentoQueryService {
   }
 
   // Buscar medicamentos do dia filtrado por usuário
+  // Buscar medicamentos do dia filtrado por usuário
   async getMedicamentosDoDia(usuarioId: string) {
     try {
       const hoje = new Date();
@@ -116,30 +117,51 @@ export class MedicAgendamentoQueryService {
       const fim = new Date(hoje);
       fim.setHours(23, 59, 59, 999);
 
+      console.log(inicio, fim);
+      // 1. pegar dispositivos do usuário (SEM JOIN profundo)
+      const dispositivos = await prisma.usuarioDispositivo.findMany({
+        where: {
+          usuario_id: usuarioId,
+        },
+        select: {
+          dispositivo_id: true,
+        },
+      });
+
+      const dispositivosIds = dispositivos.map((d) => d.dispositivo_id);
+
+      // se não tiver dispositivo, retorna vazio
+      if (dispositivosIds.length === 0) {
+        return [];
+      }
+
+      const diaSemana = hoje.getDay() + 1;
+      // 2. buscar agendamentos de forma simples e segura
       const agendamentos = await prisma.agendamento.findMany({
         where: {
           compartimento: {
-            dispositivo: {
-              usuarios: {
-                some: {
-                  usuario: {
-                    id: usuarioId,
-                  },
-                },
-              },
+            dispositivo_id: {
+              in: dispositivosIds,
+            },
+            posicao: {
+              equals: diaSemana,
             },
           },
         },
         include: {
-          medicamento: true,
+          medicamento: {
+            select: {
+              id: true,
+              nome: true,
+              dosagem: true,
+            },
+          },
 
           compartimento: {
-            include: {
-              dispositivo: {
-                include: {
-                  usuarios: true,
-                },
-              },
+            select: {
+              id: true,
+              dispositivo_id: true,
+              posicao: true,
             },
           },
 
@@ -161,9 +183,11 @@ export class MedicAgendamentoQueryService {
         },
       });
 
+      // 3. normalizar resposta
       const resultado = agendamentos.map((agendamento) => {
         return {
           id: agendamento.id,
+
           medicamento: {
             id: agendamento.medicamento.id,
             nome: agendamento.medicamento.nome,

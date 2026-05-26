@@ -9,8 +9,8 @@
 // WIFI
 //////////////////////////////////////////////////
 
-const char* ssid = "Gilson";
-const char* password = "Alpha0Delta";
+const char* ssid = "A36";
+const char* password = "eksq7069";
 
 
 //////////////////////////////////////////////////
@@ -327,11 +327,11 @@ void loop() {
       break;
 
     case ESTADO_AGUARDANDO_SAIDA:
-      if (presencaDetectada == HIGH) {
-        Serial.println("[ALERTA SEGURANÇA] Objeto detectado! Travando motor.");
+      // if (presencaDetectada == HIGH) {
+        // Serial.println("[ALERTA SEGURANÇA] Objeto detectado! Travando motor.");
         passosRestantes = 0; 
-        delay(400); 
-      } else {
+      //   delay(400); 
+      // } else {
         if (passosRestantes == 0 && compartimentoAtual != 0) {
            voltarInicio();
         }
@@ -341,7 +341,7 @@ void loop() {
           publicarEvento("FECHAMENTO", compartimentoAberto, "SUCESSO");
           estadoAtual = ESTADO_IDLE;
         }
-      }
+      // }
       break;
 
     case ESTADO_IDLE:

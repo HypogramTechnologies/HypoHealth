@@ -11,4 +11,5 @@ export interface Usuario {
   email: string;
   criado_em: string;
   dispositivos?: Dispositivo[];
+  usuario_proprietario_id: string; //Proprietario sempre
 }

@@ -9,6 +9,9 @@ import { Form } from "../../components/Form/Form";
 import { useTheme } from "@/mobile/contexts/Theme/themeContext";
 import { useMensagem } from "../../hooks/Outros/useMensagem";
 import { useState } from "react";
+// Importe o AsyncStorage se você realmente precisar salvar o token diretamente nesta tela.
+// Porém, o ideal é que isso aconteça dentro da função login() do seu useAuth.
+// import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function LoginScreen() {
   const navigation = useNavigation();
@@ -22,11 +25,9 @@ export default function LoginScreen() {
     try {
       const response = await fetch(`${process.env.EXPO_PUBLIC_URL}:${process.env.EXPO_PUBLIC_PORT}/api/auth/login`, {
         method: "POST",
-
         headers: {
           "Content-Type": "application/json",
         },
-
         body: JSON.stringify({
           email: data.usuarioLogin,
           senha: data.usuarioSenha,
@@ -36,12 +37,25 @@ export default function LoginScreen() {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.erro);
+        throw new Error(result.erro || "Erro ao realizar login");
       }
 
+      // 1. Salvar token (Se não estiver sendo feito dentro de login(result))
+      // await AsyncStorage.setItem('token', result.token);
+
+      // 2. Envia os dados para o contexto global
       login(result);
 
+      // 3. Verificando os dispositivos (como solicitado no seu snippet)
+      console.log("Dispositivos vinculados:", result.usuario?.dispositivos);
+
       showMessage("Login realizado com sucesso", "success");
+
+      // 4. Redirecionar para o dashboard
+      // IMPORTANTE: Se o seu App.tsx ou Routes.tsx já renderiza o Dashboard 
+      // automaticamente quando existe um usuário logado, essa linha não é necessária.
+      navigation.navigate("Dashboard" as never);
+
     } catch (error: any) {
       showMessage(error.message || "Erro ao realizar login", "error");
     }

@@ -1,5 +1,7 @@
 import prisma from "../database/db";
 import { logger } from "../utils/logger";
+import bcrypt from "bcrypt";
+import { salt } from "../utils/salt"; // Certifique-se de que o arquivo exporta 'salt' como constante
 
 type CreateUsuarioDispositivoDTO = {
   usuario_id: string;
@@ -13,7 +15,6 @@ export class UsuarioDispositivoService {
    */
   async create(dados: CreateUsuarioDispositivoDTO) {
     try {
-      // Validar se usuário existe
       const usuarioExiste = await prisma.usuario.findUnique({
         where: { id: dados.usuario_id },
       });
@@ -22,7 +23,6 @@ export class UsuarioDispositivoService {
         throw new Error("Usuário não encontrado.");
       }
 
-      // Validar se dispositivo existe
       const dispositivoExiste = await prisma.dispositivo.findUnique({
         where: { id: dados.dispositivo_id },
       });
@@ -31,7 +31,6 @@ export class UsuarioDispositivoService {
         throw new Error("Dispositivo não encontrado.");
       }
 
-      // Verificar se já não existe vínculo
       const vinculoExistente = await prisma.usuarioDispositivo.findUnique({
         where: {
           usuario_id_dispositivo_id: {
@@ -78,7 +77,7 @@ export class UsuarioDispositivoService {
   }
 
   /**
-   * NOVO: Buscar usuário por email
+   * Buscar usuário por email
    */
   async getUsuarioByEmail(email: string) {
     try {
@@ -105,14 +104,60 @@ export class UsuarioDispositivoService {
   }
 
   /**
+   * ⭐ MELHORADO: Criar novo usuário responsável de forma limpa com imports ES6
+   */
+  async createResponsavelUsuario(dados: {
+    email: string;
+    senha: string;
+    nome: string;
+  }) {
+    try {
+      // Verificar se email já existe
+      const usuarioExistente = await prisma.usuario.findUnique({
+        where: { email: dados.email },
+      });
+
+      if (usuarioExistente) {
+        throw new Error("Email já cadastrado");
+      }
+
+      // Hash da senha usando a importação do topo do arquivo
+      const senhaHash = await bcrypt.hash(dados.senha, salt);
+
+      // Criar novo usuário
+      const novoUsuario = await prisma.usuario.create({
+        data: {
+          nome: dados.nome,
+          email: dados.email,
+          senha: senhaHash,
+        },
+        select: {
+          id: true,
+          nome: true,
+          email: true,
+        },
+      });
+
+      logger.info(
+        `[UsuarioDispositivoService] Novo responsável criado: ${novoUsuario.email}`,
+      );
+
+      return novoUsuario;
+    } catch (error) {
+      logger.error(
+        `[UsuarioDispositivoService] Erro ao criar responsável: ${String(error)}`,
+      );
+      throw error;
+    }
+  }
+
+  /**
    * Listar todos os usuários vinculados a um dispositivo
    */
   async getByDispositivo(dispositivo_id: string) {
     try {
       const usuarios = await prisma.usuarioDispositivo.findMany({
-        where: {
-          dispositivo_id,
-        },
+        where: { dispositivo_id },
         include: {
           usuario: {
             select: {
@@ -148,9 +193,7 @@ export class UsuarioDispositivoService {
   async getByUsuario(usuario_id: string) {
     try {
       const dispositivos = await prisma.usuarioDispositivo.findMany({
-        where: {
-          usuario_id,
-        },
+        where: { usuario_id },
         include: {
           dispositivo: {
             select: {

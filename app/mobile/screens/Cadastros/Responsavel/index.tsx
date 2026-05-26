@@ -10,7 +10,6 @@ import { EmptyCarteira } from "../../../components/Feedback/EmptyCarteira";
 import { ConfirmDialog } from "../../../components/Feedback/ConfirmDialog";
 import { useMensagem } from "../../../hooks/Outros/useMensagem";
 import { useResponsavel } from "../../../hooks/Responsavel/useResponsavel";
-import { useAuth } from "../../../hooks/Auth/useAuth";
 import { RootStackParamList } from "../../../navigation/types";
 import { TypeMessage } from "@/mobile/types/Outros/messageType";
 
@@ -21,15 +20,12 @@ export function Responsavel() {
   >;
 
   const navigation = useNavigation<ResponsavelNavigationProp>();
-  const { usuario } = useAuth();
   const showMessage = useMensagem();
 
   const [confirmVisible, setConfirmVisible] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [dispositivoIdAtual, setDispositivoIdAtual] = useState<string>("");
 
-  const { responsaveis, buscarResponsaveis, removerResponsavel } =
-    useResponsavel();
+  const { responsaveis, buscarResponsaveis, removerResponsavel } = useResponsavel();
 
   const handleConfirmDelete = async () => {
     if (!selectedId) return;
@@ -50,11 +46,8 @@ export function Responsavel() {
 
   useFocusEffect(
     useCallback(() => {
-      // Você precisa obter o dispositivoId do usuário atual
-      if (dispositivoIdAtual) {
-        buscarResponsaveis(dispositivoIdAtual);
-      }
-    }, [dispositivoIdAtual, buscarResponsaveis])
+      buscarResponsaveis();
+    }, [buscarResponsaveis])
   );
 
   return (
@@ -76,8 +69,8 @@ export function Responsavel() {
             <CarteiraItem
               key={item.id}
               icon="user"
-              title={item.usuario.nome}
-              description={item.usuario.email}
+              title={item.usuario?.nome || "Sem Nome"} // Proteção com Optional Chaining
+              description={item.usuario?.email || "Sem Email"} // Proteção com Optional Chaining
               onPress={() =>
                 navigation.navigate("ResponsavelForm", {
                   responsavelId: item.id,

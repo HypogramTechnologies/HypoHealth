@@ -3,21 +3,17 @@ import jwt from "jsonwebtoken";
 import prisma from "../database/db";
 
 import { UsuarioService } from "./UsuarioService";
-
 import { LoginDTO } from "../dtos/authDTO";
 import { CreateUsuarioDTO } from "../dtos/usuarioDTO";
-
 import { EXPIRES_IN } from "../utils/jwt";
 
 const usuarioService = new UsuarioService();
 
 export class AuthService {
   private async montarUsuario(usuarioId: string) {
+    // 1. Busca o usuário trazendo seus vínculos com os dispositivos
     const usuario = await prisma.usuario.findUnique({
-      where: {
-        id: usuarioId,
-      },
-
+      where: { id: usuarioId },
       include: {
         dispositivos: {
           include: {
@@ -31,32 +27,32 @@ export class AuthService {
       throw new Error("Usuário não encontrado");
     }
 
-    const proprietario = await prisma.usuarioDispositivo.findFirst({
-      where: {
-        // dispositivo_id:
-        //   usuario.dispositivos[0]
-        //     ?.dispositivo_id,
+    // 2. Descobre o ID do primeiro dispositivo vinculado (se houver)
+    const primeiroDispositivoId = usuario.dispositivos[0]?.dispositivo_id;
+    let usuarioProprietarioId: string | null = null;
 
-        tipo_acesso: "PROPRIETARIO",
-      },
+    // 3. Se houver um dispositivo vinculado, busca especificamente quem é o PROPRIETARIO dele
+    if (primeiroDispositivoId) {
+      const vinculoProprietario = await prisma.usuarioDispositivo.findFirst({
+        where: {
+          dispositivo_id: primeiroDispositivoId,
+          tipo_acesso: "PROPRIETARIO",
+        },
+      });
 
-      include: {
-        usuario: true,
-      },
-    });
+      if (vinculoProprietario) {
+        usuarioProprietarioId = vinculoProprietario.usuario_id;
+      }
+    }
 
+    // 4. Retorna o objeto montado perfeitamente para o Mobile
     return {
       id: usuario.id,
-
       nome: usuario.nome,
-
       email: usuario.email,
-
-      usuario_proprietario_id: proprietario?.usuario_id,
-
+      usuario_proprietario_id: usuarioProprietarioId, // Agora com o ID correto e seguro!
       dispositivos: usuario.dispositivos.map((item) => ({
         id: item.dispositivo_id,
-
         tipo_acesso: item.tipo_acesso,
       })),
     };
@@ -66,16 +62,9 @@ export class AuthService {
     const usuario = await usuarioService.create(data);
 
     const token = jwt.sign(
-      {
-        id: usuario.id,
-        email: usuario.email,
-      },
-
+      { id: usuario.id, email: usuario.email },
       process.env.JWT_SECRET as string,
-
-      {
-        expiresIn: EXPIRES_IN,
-      },
+      { expiresIn: EXPIRES_IN },
     );
 
     const usuarioCompleto = await this.montarUsuario(usuario.id);
@@ -88,9 +77,7 @@ export class AuthService {
 
   async login(data: LoginDTO) {
     const usuario = await prisma.usuario.findUnique({
-      where: {
-        email: data.email,
-      },
+      where: { email: data.email },
     });
 
     if (!usuario) {
@@ -104,16 +91,9 @@ export class AuthService {
     }
 
     const token = jwt.sign(
-      {
-        id: usuario.id,
-        email: usuario.email,
-      },
-
+      { id: usuario.id, email: usuario.email },
       process.env.JWT_SECRET as string,
-
-      {
-        expiresIn: EXPIRES_IN,
-      },
+      { expiresIn: EXPIRES_IN },
     );
 
     const usuarioCompleto = await this.montarUsuario(usuario.id);

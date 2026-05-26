@@ -1,13 +1,8 @@
 import { useEffect, useState } from "react";
-
 import { useForm } from "react-hook-form";
-
 import { zodResolver } from "@hookform/resolvers/zod";
-
 import { responsavelService } from "../../services/responsavelService";
-
 import { useAuth } from "../Auth/useAuth";
-
 import {
   responsavelSchema,
   ResponsavelFormData,
@@ -17,7 +12,6 @@ import { Responsavel } from "@/mobile/types/Cadastros/responsavel";
 
 interface UseResponsavelProps {
   mode?: Mode;
-
   responsavel?: Responsavel;
 }
 
@@ -28,35 +22,23 @@ export function useResponsavel({
   const { usuario } = useAuth();
 
   const [responsaveis, setResponsaveis] = useState<Responsavel[]>([]);
-
   const [carregando, setCarregando] = useState(false);
-
   const [erro, setErro] = useState<string | null>(null);
-
   const [secure, setSecure] = useState(true);
-
   const [secureConfirm, setSecureConfirm] = useState(true);
 
   const {
     control,
-
     handleSubmit,
-
     reset,
-
     setValue,
-
     formState: { errors },
   } = useForm<ResponsavelFormData>({
     resolver: zodResolver(responsavelSchema),
-
     defaultValues: {
       nome: "",
-
       email: "",
-
       senha: "",
-
       confirmarSenha: "",
     },
   });
@@ -64,7 +46,6 @@ export function useResponsavel({
   useEffect(() => {
     if (mode === "edit" && responsavel) {
       setValue("nome", responsavel.usuario?.nome || "");
-
       setValue("email", responsavel.usuario?.email || "");
     }
   }, [mode, responsavel, setValue]);
@@ -72,7 +53,6 @@ export function useResponsavel({
   async function buscarResponsaveis() {
     try {
       setCarregando(true);
-
       setErro(null);
 
       const dispositivoId = usuario?.dispositivos?.[0]?.id;
@@ -81,10 +61,9 @@ export function useResponsavel({
         throw new Error("Nenhum dispositivo associado.");
       }
 
-      const dados =
-        await responsavelService.listarResponsaveisPorDispositivo(
-          dispositivoId,
-        );
+      const dados = await responsavelService.listarResponsaveisPorDispositivo(
+        dispositivoId,
+      );
 
       setResponsaveis(dados as Responsavel[]);
     } catch (error: any) {
@@ -97,7 +76,6 @@ export function useResponsavel({
   async function create(data: ResponsavelFormData) {
     try {
       setCarregando(true);
-
       setErro(null);
 
       const dispositivoId = usuario?.dispositivos?.[0]?.id;
@@ -108,22 +86,17 @@ export function useResponsavel({
 
       const novoResponsavel = await responsavelService.adicionarResponsavel({
         nome: data.nome,
-
         email: data.email,
-
         senha: data.senha,
-
         dispositivo_id: dispositivoId,
       });
 
       setResponsaveis((prev) => [...prev, novoResponsavel as Responsavel]);
-
       reset();
 
       return novoResponsavel;
     } catch (error: any) {
       setErro(error.message || "Erro ao adicionar responsável.");
-
       throw error;
     } finally {
       setCarregando(false);
@@ -133,17 +106,13 @@ export function useResponsavel({
   async function update(id: string, data: ResponsavelFormData) {
     try {
       setCarregando(true);
-
       setErro(null);
 
-      const responsavelAtualizado =
-        await responsavelService.atualizarResponsavel(id, {
-          nome: data.nome,
-
-          email: data.email,
-
-          senha: data.senha,
-        });
+      const responsavelAtualizado = await responsavelService.atualizarResponsavel(id, {
+        nome: data.nome,
+        email: data.email,
+        senha: data.senha,
+      });
 
       setResponsaveis((prev) =>
         prev.map((item) =>
@@ -154,7 +123,6 @@ export function useResponsavel({
       return responsavelAtualizado;
     } catch (error: any) {
       setErro(error.message || "Erro ao atualizar responsável.");
-
       throw error;
     } finally {
       setCarregando(false);
@@ -164,7 +132,6 @@ export function useResponsavel({
   async function remove(usuarioDispositivoId: string) {
     try {
       setCarregando(true);
-
       setErro(null);
 
       await responsavelService.removerResponsavel(usuarioDispositivoId);
@@ -174,7 +141,6 @@ export function useResponsavel({
       );
     } catch (error: any) {
       setErro(error.message || "Erro ao remover responsável.");
-
       throw error;
     } finally {
       setCarregando(false);
@@ -184,64 +150,47 @@ export function useResponsavel({
   async function submit() {
   let success = false;
 
-    await handleSubmit(async (data) => {
+  await handleSubmit(
+    async (data) => {
       success = await onSubmit(data);
-    })();
-
-    return success;
-  }
-
-  const onSubmit = async (
-  data: ResponsavelFormData,
-) => {
-  try {
-    if (
-      mode === "edit" &&
-      responsavel?.usuario?.id
-    ) {
-      await update(
-        responsavel.usuario.id,
-        data,
-      );
-
-      return true;
+    },
+    (validationErrors) => {
+      // 🌟 Isso vai cuspir o erro exato no terminal do Metro/VS Code quando você clicar no botão
+      console.log("❌ Erro de Validação do Zod no Formulário:", validationErrors);
+      success = false;
     }
+  )();
 
-    await create(data);
+  return success;
+}
 
-    return true;
-  } catch {
-    return false;
-  }
-};
+  const onSubmit = async (data: ResponsavelFormData) => {
+    try {
+      if (mode === "edit" && responsavel?.usuario?.id) {
+        await update(responsavel.usuario.id, data);
+        return true;
+      }
 
-  useEffect(() => {
-    buscarResponsaveis();
-  }, []);
+      await create(data);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
 
   return {
     responsaveis,
-
     carregando,
-
     erro,
-
     secure,
-
     setSecure,
-
     secureConfirm,
-
     setSecureConfirm,
-
     control,
-
     errors,
-
     buscarResponsaveis,
-
     removerResponsavel: remove,
-
     submit,
   };
 }

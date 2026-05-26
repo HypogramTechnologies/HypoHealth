@@ -1,42 +1,32 @@
-import {
-  useRoute,
-  useNavigation,
-} from "@react-navigation/native";
-
-import type {
-  RouteProp,
-} from "@react-navigation/native";
-
+import React from "react";
+import { useRoute, useNavigation } from "@react-navigation/native";
+import type { RouteProp } from "@react-navigation/native";
 import { Controller } from "react-hook-form";
 
 import { Form } from "../../../components/Form/Form";
-
 import { InputField } from "../../../components/Form/InputField";
-
 import { ActionButton } from "@/mobile/components/MedicamentoForm/ActionButton";
-
 import { RootStackParamList } from "../../../navigation/types";
-
 import { useMensagem } from "../../../hooks/Outros/useMensagem";
-
 import { useResponsavel } from "../../../hooks/Responsavel/useResponsavel";
+import { TypeMessage } from "@/mobile/types/Outros/messageType";
+import { Responsavel as ResponsavelType } from "@/mobile/types/Cadastros/responsavel";
+
+// Definindo explicitamente o que a rota pode receber localmente para evitar erros de tipagem
+type ResponsavelFormRouteProp = RouteProp<RootStackParamList, "ResponsavelForm"> & {
+  params: {
+    mode?: "create" | "view" | "edit";
+    responsavelId?: string;
+    responsavel?: ResponsavelType; // Adicionado de forma estendida aqui
+  };
+};
 
 export function ResponsavelForm() {
   const navigation = useNavigation();
-
-  const route =
-    useRoute<
-      RouteProp<
-        RootStackParamList,
-        "ResponsavelForm"
-      >
-    >();
-
-  const {
-    mode = "create",
-  } = route.params || {};
-
+  const route = useRoute<ResponsavelFormRouteProp>();
   const showMessage = useMensagem();
+
+  const { mode = "create", responsavel } = route.params || {};
 
   const {
     control,
@@ -48,28 +38,27 @@ export function ResponsavelForm() {
     submit,
   } = useResponsavel({
     mode,
+    responsavel,
   });
 
   async function handleForm() {
     try {
-      const success =
-        await submit();
+      const success = await submit();
 
       if (success) {
         showMessage(
           mode === "create"
             ? "Responsável criado com sucesso!"
             : "Responsável atualizado com sucesso!",
-          "success",
+          TypeMessage.success
         );
 
         navigation.goBack();
       }
     } catch (error: any) {
       showMessage(
-        error.message ||
-          "Erro ao salvar responsável",
-        "error",
+        error.message || "Erro ao salvar responsável",
+        TypeMessage.error
       );
     }
   }
@@ -111,14 +100,8 @@ export function ResponsavelForm() {
             value={field.value}
             onChangeText={field.onChange}
             secureTextEntry={secure}
-            rightIcon={
-              secure
-                ? "eye-off"
-                : "eye"
-            }
-            onRightIconPress={() =>
-              setSecure(!secure)
-            }
+            rightIcon={secure ? "eye-off" : "eye"}
+            onRightIconPress={() => setSecure(!secure)}
             error={errors.senha?.message}
           />
         )}
@@ -132,33 +115,16 @@ export function ResponsavelForm() {
             label="Confirmar senha"
             value={field.value}
             onChangeText={field.onChange}
-            secureTextEntry={
-              secureConfirm
-            }
-            rightIcon={
-              secureConfirm
-                ? "eye-off"
-                : "eye"
-            }
-            onRightIconPress={() =>
-              setSecureConfirm(
-                !secureConfirm,
-              )
-            }
-            error={
-              errors.confirmarSenha
-                ?.message
-            }
+            secureTextEntry={secureConfirm}
+            rightIcon={secureConfirm ? "eye-off" : "eye"}
+            onRightIconPress={() => setSecureConfirm(!secureConfirm)}
+            error={errors.confirmarSenha?.message}
           />
         )}
       />
 
       <ActionButton
-        title={
-          mode === "create"
-            ? "Salvar"
-            : "Atualizar"
-        }
+        title={mode === "create" ? "Salvar" : "Atualizar"}
         icon="save-outline"
         onPress={handleForm}
       />

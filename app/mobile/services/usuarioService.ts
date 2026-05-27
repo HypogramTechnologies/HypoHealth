@@ -2,12 +2,14 @@ import { api } from './api';
 
 export interface Dispositivo {
   id: string;
-  tipo: string;
+  tipo_acesso: string;
+  nome: string | null;
+  numero_serie: string;
 }
 
 export interface Usuario {
   id: string;
-  nome: string;
+  nome: string | null;
   email: string;
   criado_em: string;
   dispositivos?: Dispositivo[];

@@ -1,11 +1,18 @@
-import { useDispositivoCombo } from '../../../mobile/hooks/Dispositivo/useDispositivoCombo';
-import { useMedicamentoCombo } from '../../../mobile/hooks/Medicamento/useMedicamentoCombo';
-import { useCompartimentoCombo } from '../../../mobile/hooks/Compartimento/useCompartimentoCombo';
+// import { useDispositivoCombo } from '../../../mobile/hooks/Dispositivo/useDispositivoCombo';
+// import { useMedicamentoCombo } from '../../../mobile/hooks/Medicamento/useMedicamentoCombo';
+// import { useCompartimentoCombo } from '../../../mobile/hooks/Compartimento/useCompartimentoCombo';
+import { useStatusMedicamentoCombo } from '../../../mobile/hooks/Medicamento/useStatusMedicamentoCombo';
+import { useTipoMedicamentoCombo } from '../../../mobile/hooks/Medicamento/useTipoMedicamentoCombo';
 
 export const comboOptions = {
-  dispositivos: useDispositivoCombo,
-  medicamentos: useMedicamentoCombo,
-  compartimentos: useCompartimentoCombo,
+
+  
+  statusMedicamento: useStatusMedicamentoCombo,
+
+  tipoMedicamento: useTipoMedicamentoCombo,
+  // dispositivos: useDispositivoCombo,
+  // medicamentos: useMedicamentoCombo,
+  // compartimentos: useCompartimentoCombo,
 
 };
 

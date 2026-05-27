@@ -1,7 +1,7 @@
 import {api} from "./api";
 
-export async function buscarHomeHeader() {
-  const response = await api.get("/home/header");
+export async function buscarHomeHeader(usuarioID: string) {
+  const response = await api.get(`/home/header/${usuarioID}`);
 
   return response.data;
 }

@@ -6,7 +6,7 @@ import {
 
 import { buscarHomeHeader } from "../../services/homeService";
 
-export function useHomeHeader() {
+export function useHomeHeader(usuarioId: string) {
 
   const [dados, setDados] =
     useState<any>(null);
@@ -15,7 +15,7 @@ export function useHomeHeader() {
     try {
 
       const response =
-        await buscarHomeHeader();
+        await buscarHomeHeader(usuarioId);
 
       setDados(response);
 

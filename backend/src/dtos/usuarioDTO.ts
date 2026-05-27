@@ -22,5 +22,7 @@ export interface UsuarioResponseDTO {
   dispositivos?: {
     id: string;
     tipo: string;
+    nome: string | null;
+    numero_serie: string;
   }[];
 }

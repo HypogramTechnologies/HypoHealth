@@ -61,7 +61,11 @@ export class UsuarioService {
       where: { email },
 
       include: {
-        dispositivos: true,
+        dispositivos: {
+          include: {
+            dispositivo: true,
+          },
+        },
       },
     });
 
@@ -78,6 +82,8 @@ export class UsuarioService {
       dispositivos: usuario.dispositivos.map((d) => ({
         id: d.id,
         tipo: d.tipo_acesso,
+        nome: d.dispositivo.nome,
+        numero_serie: d.dispositivo.numero_serie,
       })),
     };
   }
@@ -99,7 +105,11 @@ export class UsuarioService {
     const usuario = await prisma.usuario.findUnique({
       where: { id },
       include: {
-        dispositivos: true,
+        dispositivos: {
+          include: {
+            dispositivo: true,
+          },
+        },
       },
     });
 
@@ -113,6 +123,8 @@ export class UsuarioService {
       dispositivos: usuario.dispositivos.map((d) => ({
         id: d.id,
         tipo: d.tipo_acesso,
+        nome: d.dispositivo.nome,
+        numero_serie: d.dispositivo.numero_serie,
       })),
     };
   }

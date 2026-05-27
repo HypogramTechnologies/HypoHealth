@@ -1,27 +1,41 @@
 import prisma from "../database/db";
 import { logger } from "../utils/logger";
+import { MedicamentoQuery } from "../queries/medicamentoQuery";
 
 export class MedicAgendamentoQueryService {
   // Buscar todos os medicamentos com seus agendamentos
-  async getAllCompleto() {
+  async getAllCompleto(filtros?: any) {
     try {
+      const where = MedicamentoQuery.montarFiltros(filtros);
+
       const medicamentos = await prisma.medicamento.findMany({
+        where,
+
         include: {
           agendamentos: {
             include: {
               compartimento: true,
+
               horarios: {
-                orderBy: { horario: "asc" },
+                include: {
+                  retiradas: true,
+                },
+
+                orderBy: {
+                  horario: "asc",
+                },
               },
             },
           },
         },
       });
+
       return medicamentos;
     } catch (error) {
       logger.error(
         `[MedicAgendamentoQueryService] Erro ao buscar medicamentos com agendamentos: ${String(error)}`,
       );
+
       throw error;
     }
   }
@@ -105,7 +119,6 @@ export class MedicAgendamentoQueryService {
     }
   }
 
-  // Buscar medicamentos do dia filtrado por usuário
   // Buscar medicamentos do dia filtrado por usuário
   async getMedicamentosDoDia(usuarioId: string) {
     try {

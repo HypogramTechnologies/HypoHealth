@@ -166,7 +166,7 @@ export function Medicamento() {
           dados.map(item => (
             <CarteiraItem
               key={item.id}
-              icon="school"
+              icon="pill"
               title={item.nome}
               description={description(
                 item,

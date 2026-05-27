@@ -1,19 +1,16 @@
 import { comboOptions } from '../../types/Outros/comboOptions';
 
 export const comboConfig = {
-  medicamentos: {
-    hook: comboOptions.medicamentos,
-    optionsKey: 'optionsMedicamentos',
+  tipoMedicamento: {
+    hook: comboOptions.tipoMedicamento,
+    optionsKey: 'optionsTipoMedicamento',
   },
 
-  compartimentos: {
-    hook: comboOptions.compartimentos,
-    optionsKey: 'optionsCompartimentos',
+  statusMedicamento: {
+    hook: comboOptions.statusMedicamento,
+    optionsKey: 'optionsStatusMedicamento',
   },
 
-  dispositivos: {
-    hook: comboOptions.dispositivos,
-    optionsKey: 'optionsDispositivos',
-  },
+
 
 };

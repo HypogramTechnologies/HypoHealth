@@ -31,9 +31,9 @@ export function useUsuario() {
         const dados = await UsuarioService.getById(
           usuario.id
         );
-
-        console.log(dados);
-
+        console.log('Dados do usuário buscados:', dados);
+        return dados;
+        
      
     } catch (err: any) {
       setError(

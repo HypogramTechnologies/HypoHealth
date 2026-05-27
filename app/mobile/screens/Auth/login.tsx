@@ -105,7 +105,7 @@ export default function LoginScreen() {
         name="usuarioLogin"
         render={({ field }) => (
           <InputField
-            label="Email"
+            label="E-mail"
             value={field.value}
             onChangeText={field.onChange}
             error={errors.usuarioLogin?.message}

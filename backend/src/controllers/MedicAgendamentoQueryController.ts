@@ -8,7 +8,9 @@ export class MedicAgendamentoQueryController {
   // GET todos os medicamentos com agendamentos
   async getAllMedicamentosComAgendamentos(req: Request, res: Response) {
     try {
-      const medicamentos = await medicAgendamentoQueryService.getAllCompleto();
+      const medicamentos = await medicAgendamentoQueryService.getAllCompleto(
+        req.query,
+      );
 
       return res.status(200).json(medicamentos);
     } catch (error) {

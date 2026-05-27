@@ -83,7 +83,7 @@ export function ResponsavelForm() {
         name="email"
         render={({ field }) => (
           <InputField
-            label="Email"
+            label="E-mail"
             value={field.value}
             onChangeText={field.onChange}
             error={errors.email?.message}

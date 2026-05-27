@@ -19,7 +19,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
 
   function login(data: { usuario: Usuario; token: string }) {
-    console.log("DADOS DE LOGIN:", data);
     setUsuario(data.usuario);
     setToken(data.token);
     setAuthorizationToken(data.token);

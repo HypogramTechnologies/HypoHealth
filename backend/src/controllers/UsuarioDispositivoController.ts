@@ -164,11 +164,9 @@ export class UsuarioDispositivoController {
       const { usuario_id, dispositivo_id, tipo_acesso } = req.body;
 
       if (!usuario_id || !dispositivo_id || !tipo_acesso) {
-        return res
-          .status(400)
-          .json({
-            erro: "usuario_id, dispositivo_id e tipo_acesso são obrigatórios.",
-          });
+        return res.status(400).json({
+          erro: "usuario_id, dispositivo_id e tipo_acesso são obrigatórios.",
+        });
       }
 
       const resultado = await usuarioDispositivoService.create({
@@ -182,11 +180,9 @@ export class UsuarioDispositivoController {
         `[UsuarioDispositivoController] Erro ao criar vínculo: ${String(error)}`,
       );
       const statusCode = error.message?.includes("não encontrado") ? 404 : 400;
-      return res
-        .status(statusCode)
-        .json({
-          erro: error.message || "Erro ao vincular usuário ao dispositivo.",
-        });
+      return res.status(statusCode).json({
+        erro: error.message || "Erro ao vincular usuário ao dispositivo.",
+      });
     }
   }
 
@@ -207,11 +203,9 @@ export class UsuarioDispositivoController {
           usuarioFinal_id = usuarioExistente.id;
         } else {
           if (!senha || !nome) {
-            return res
-              .status(400)
-              .json({
-                erro: "Para criar um novo responsável, email, senha e nome são obrigatórios.",
-              });
+            return res.status(400).json({
+              erro: "Para criar um novo responsável, email, senha e nome são obrigatórios.",
+            });
           }
 
           const novoUsuario =
@@ -225,11 +219,9 @@ export class UsuarioDispositivoController {
       }
 
       if (!usuarioFinal_id || !dispositivo_id) {
-        return res
-          .status(400)
-          .json({
-            erro: "usuario_id (ou email+senha+nome) e dispositivo_id são obrigatórios.",
-          });
+        return res.status(400).json({
+          erro: "usuario_id (ou email+senha+nome) e dispositivo_id são obrigatórios.",
+        });
       }
 
       const resultado = await usuarioDispositivoService.create({
@@ -267,11 +259,9 @@ export class UsuarioDispositivoController {
       logger.error(
         `[UsuarioDispositivoController] Erro ao buscar usuários por dispositivo: ${String(error)}`,
       );
-      return res
-        .status(400)
-        .json({
-          erro: error.message || "Erro ao buscar usuários do dispositivo.",
-        });
+      return res.status(400).json({
+        erro: error.message || "Erro ao buscar usuários do dispositivo.",
+      });
     }
   }
 
@@ -292,11 +282,9 @@ export class UsuarioDispositivoController {
       logger.error(
         `[UsuarioDispositivoController] Erro ao buscar dispositivos por usuário: ${String(error)}`,
       );
-      return res
-        .status(400)
-        .json({
-          erro: error.message || "Erro ao buscar dispositivos do usuário.",
-        });
+      return res.status(400).json({
+        erro: error.message || "Erro ao buscar dispositivos do usuário.",
+      });
     }
   }
 

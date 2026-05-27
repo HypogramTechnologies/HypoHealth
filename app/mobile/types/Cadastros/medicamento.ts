@@ -48,6 +48,22 @@ export interface MedicamentoFiltro {
   medicamentoDescricao?: string;
 
   usuario_id?: string;
+
+  tipo?: "HORARIO_FIXO" | "INTERVALO";
+
+  status?:
+    | "PENDENTE"
+    | "RETIRADO"
+    | "ATRASADO"
+    | "NAO_RETIRADO";
+
+  criado_em_inicio?: string;
+
+  criado_em_fim?: string;
+
+  data_inicio?: string;
+
+  data_fim?: string;
 }
 
 export type TipoMedicamento =

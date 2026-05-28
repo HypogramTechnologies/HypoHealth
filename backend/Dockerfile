@@ -33,4 +33,4 @@ COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 EXPOSE 3001
 
 # Executa as migrações e inicia o servidor
-CMD ["sh", "-c", "if [ -z \"$DATABASE_URL\" ] || [ \"$DATABASE_URL\" = \"\" ]; then export DATABASE_URL=\"postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}?schema=public\"; fi; npx prisma migrate deploy && npx prisma db seed && node dist/src/server.js"]
+CMD ["sh", "-c", "if [ -z \"$DATABASE_URL\" ] || [ \"$DATABASE_URL\" = \"\" ]; then export DATABASE_URL=\"postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}?schema=public\"; fi; npx prisma migrate deploy && node dist/src/server.js"]

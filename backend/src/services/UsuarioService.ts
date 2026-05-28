@@ -121,7 +121,7 @@ export class UsuarioService {
       email: usuario.email,
       criado_em: usuario.criado_em,
       dispositivos: usuario.dispositivos.map((d) => ({
-        id: d.id,
+        id: d.dispositivo.id,
         tipo: d.tipo_acesso,
         nome: d.dispositivo.nome,
         numero_serie: d.dispositivo.numero_serie,

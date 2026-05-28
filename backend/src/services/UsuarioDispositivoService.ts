@@ -104,7 +104,7 @@ export class UsuarioDispositivoService {
   }
 
   /**
-   * ⭐ MELHORADO: Criar novo usuário responsável de forma limpa com imports ES6
+   * Criar novo usuário responsável de forma limpa com imports ES6
    */
   async createResponsavelUsuario(dados: {
     email: string;

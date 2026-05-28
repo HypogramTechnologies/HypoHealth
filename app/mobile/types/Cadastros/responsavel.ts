@@ -1,5 +1,5 @@
 
-export interface Responsavel {
+export interface ResponsavelDetalhado {
   id: string;
 
   usuario_id: string;
@@ -17,4 +17,9 @@ export interface Responsavel {
 
     email: string;
   };
+}
+
+export interface ResponsavelFiltro{
+  email?: string;
+  nome?: string;
 }

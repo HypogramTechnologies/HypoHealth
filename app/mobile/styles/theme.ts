@@ -8,7 +8,7 @@ export const lightTheme = {
     primary: '#129B83',
     detail: '#1BB39A',
     destaque: '#0E7A67',
-
+    destaque_amarelo: '#F59E0B',
     text: '#0F172A',
     textInverted: '#FFFFFF',
 
@@ -103,7 +103,7 @@ export const darkTheme = {
     primary: '#129B83',
     detail: '#1BB39A',
     destaque: '#0E7A67',
-
+    destaque_amarelo: '#F59E0B',
     text: '#F8FAFC',
     textInverted: '#0F172A',
 

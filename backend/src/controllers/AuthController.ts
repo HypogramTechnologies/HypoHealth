@@ -14,11 +14,11 @@ export class AuthController {
     try {
       const resultado = await authService.cadastrar(req.body);
 
-      await usuarioDispositivoService.create({
-        usuario_id: resultado.usuario.id,
-        dispositivo_id: req.body.dispositivo_id,
-        tipo_acesso: "PROPRIETARIO",
-      });
+      // await usuarioDispositivoService.create({
+      //   usuario_id: resultado.usuario.id,
+      //   dispositivo_id: req.body.dispositivo_id,
+      //   tipo_acesso: "PROPRIETARIO",
+      // });
 
       return res.status(201).json(resultado);
     } catch (error: any) {

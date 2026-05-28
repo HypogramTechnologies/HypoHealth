@@ -5,7 +5,7 @@ import { ThemeType } from '../../contexts/Theme/themeContext';
 export const styles = (theme: ThemeType) =>
   StyleSheet.create({
     container: {
-      backgroundColor: '#129B83',
+      backgroundColor: theme.colors.primary,
 
       paddingHorizontal: 22,
       paddingTop: 60,
@@ -61,7 +61,7 @@ export const styles = (theme: ThemeType) =>
     },
 
     accountBadgeText: {
-      color: '#FFF',
+      color: theme.colors.text,
 
       fontSize: 13,
 
@@ -71,7 +71,7 @@ export const styles = (theme: ThemeType) =>
     },
 
     greeting: {
-      color: '#D7F7F0',
+      color: theme.colors.text,
 
       fontSize: 18,
 
@@ -79,7 +79,7 @@ export const styles = (theme: ThemeType) =>
     },
 
     name: {
-      color: '#FFF',
+      color: theme.colors.text,
 
       fontSize: 38,
 
@@ -94,7 +94,7 @@ export const styles = (theme: ThemeType) =>
 
       borderRadius: 33,
 
-      backgroundColor: '#F5F5F5',
+      backgroundColor: theme.colors.text,
 
       justifyContent: 'center',
       alignItems: 'center',
@@ -108,7 +108,7 @@ export const styles = (theme: ThemeType) =>
     },
 
     profileLetter: {
-      color: '#129B83',
+      color: theme.colors.primary,
 
       fontSize: 28,
 
@@ -126,17 +126,17 @@ export const styles = (theme: ThemeType) =>
 
       borderRadius: 11,
 
-      backgroundColor: '#F59E0B',
+      backgroundColor: theme.colors.destaque_amarelo,
 
       justifyContent: 'center',
       alignItems: 'center',
 
       borderWidth: 2,
-      borderColor: '#129B83',
+      borderColor: theme.colors.primary,
     },
 
     careCard: {
-      backgroundColor: '#F59E0B',
+      backgroundColor: theme.colors.destaque_amarelo,
 
       borderRadius: 24,
 
@@ -167,7 +167,7 @@ export const styles = (theme: ThemeType) =>
 
       borderRadius: 34,
 
-      backgroundColor: '#FFF',
+      backgroundColor: theme.colors.text,
 
       justifyContent: 'center',
       alignItems: 'center',
@@ -196,13 +196,13 @@ export const styles = (theme: ThemeType) =>
 
       borderRadius: 12,
 
-      backgroundColor: '#F59E0B',
+      backgroundColor: theme.colors.destaque_amarelo,
 
       justifyContent: 'center',
       alignItems: 'center',
 
       borderWidth: 3,
-      borderColor: '#FFF',
+      borderColor: theme.colors.text,
     },
 
     careLabelRow: {
@@ -214,7 +214,7 @@ export const styles = (theme: ThemeType) =>
     },
 
     careLabel: {
-      color: '#FFF',
+      color: theme.colors.text,
 
       fontSize: 13,
 
@@ -226,7 +226,7 @@ export const styles = (theme: ThemeType) =>
     },
 
     careName: {
-      color: '#FFF',
+      color: theme.colors.text,
 
       fontSize: 34,
 

@@ -9,8 +9,10 @@ import { LoginDTO } from "../dtos/authDTO";
 import { CreateUsuarioDTO } from "../dtos/usuarioDTO";
 
 import { EXPIRES_IN } from "../utils/jwt";
+import { UsuarioDispositivoService } from "./UsuarioDispositivoService";
 
 const usuarioService = new UsuarioService();
+const usuarioDispositivoService = new UsuarioDispositivoService();
 
 export class AuthService {
   private async montarUsuario(usuarioId: string) {
@@ -31,6 +33,7 @@ export class AuthService {
       throw new Error("Usuário não encontrado");
     }
 
+    console.log("usuario recuperado:", usuario);
     // Primeiro dispositivo do usuário
     const primeiroDispositivoId = usuario.dispositivos[0]?.dispositivo_id;
 
@@ -97,6 +100,12 @@ export class AuthService {
         expiresIn: EXPIRES_IN,
       },
     );
+
+    await usuarioDispositivoService.create({
+      usuario_id: usuario.id,
+      dispositivo_id: data.dispositivo_id as string,
+      tipo_acesso: "PROPRIETARIO",
+    });
 
     const usuarioCompleto = await this.montarUsuario(usuario.id);
 

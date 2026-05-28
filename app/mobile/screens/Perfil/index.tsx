@@ -27,7 +27,7 @@ export function Perfil() {
 
   const { usuario, loading, error } =
     useUsuario();
-  console.log('Usuario no Perfil:', usuario);
+
   const { logout } = useAuth();
 
   if (loading) {
@@ -185,14 +185,6 @@ export function Perfil() {
                       {dispositivo.nome}
                     </Text>
 
-                    {/* <Text
-                      style={
-                        profileStyles
-                          .responsavelTelefone
-                      }
-                    >
-                      ID: {dispositivo.numero_serie}
-                    </Text> */}
                   </View>
                 </View>
               )

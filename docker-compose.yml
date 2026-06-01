@@ -30,7 +30,7 @@ services:
     ports:
       - "3001:3001"
     volumes:
-      - ./backend:/app
+      - ./backend/prisma/migrations:/app/prisma/migrations
     networks:
       - hypo_network
     #depends_on:

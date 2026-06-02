@@ -164,6 +164,7 @@ model Usuario {
   nome        String   @db.VarChar(150)
   email       String   @unique @db.VarChar(150)
   senha       String
+  push_token  String?
 
   criado_em   DateTime @default(now())
 

@@ -1,10 +1,11 @@
 import prisma from "../database/db";
 import { StatusRetirada } from "@prisma/client";
 import { IMqttEvent } from "../types/IMqtt";
+import { alertService } from "./AlertService";
 import { logger } from "../utils/logger";
 
 export class MedicationIntakeService {
-  //Chamado pelo AgendadorCronService.ts no momento em que o comando MQTT é enviado
+  // Chamado pelo AgendadorCronService.ts no momento em que o comando MQTT é enviado
   async criarRegistroPendente(
     agendamentoHorarioId: string,
     horarioProgramado: Date,
@@ -23,12 +24,11 @@ export class MedicationIntakeService {
       logger.error(
         `[MedicationIntakeService] Erro ao criar registro pendente: ${String(error)}`,
       );
-
       throw error;
     }
   }
 
-  //Monitoramento automático de atrasos
+  // Monitoramento automático de atrasos
   async monitorarAtrasos() {
     try {
       const agora = new Date();
@@ -48,12 +48,11 @@ export class MedicationIntakeService {
 
         let novoStatus: StatusRetirada | null = null;
 
-        //Mais de 2 horas sem retirada
+        // Mais de 2 horas sem retirada
         if (diferencaMin >= 120) {
           novoStatus = StatusRetirada.NAO_RETIRADO;
         }
-
-        //Mais de 15 minutos de atraso
+        // Mais de 15 minutos de atraso
         else if (
           diferencaMin >= 15 &&
           retirada.status === StatusRetirada.PENDENTE
@@ -61,20 +60,21 @@ export class MedicationIntakeService {
           novoStatus = StatusRetirada.ATRASADO;
         }
 
-        //Atualizar apenas se necessário
+        // Atualiza o banco e dispara ações apenas se houver mudança de estado real
         if (novoStatus && novoStatus !== retirada.status) {
           await prisma.retiradaMedicamento.update({
-            where: {
-              id: retirada.id,
-            },
-            data: {
-              status: novoStatus,
-            },
+            where: { id: retirada.id },
+            data: { status: novoStatus },
           });
 
           logger.warn(
-            `[MedicationIntakeService] Retirada ${retirada.id} marcada como ${novoStatus}`,
+            `[MedicationIntakeService] Retirada ${retirada.id} atualizada para o status: ${novoStatus}`,
           );
+
+          // Se mudou para ATRASADO, avisa paciente e responsáveis
+          if (novoStatus === StatusRetirada.ATRASADO) {
+            await alertService.dispararAlertaAtraso(retirada.id);
+          }
         }
       }
     } catch (error) {
@@ -84,7 +84,7 @@ export class MedicationIntakeService {
     }
   }
 
-  //Chamado pelo server.ts quando o ESP32 retorna um evento
+  // Chamado pelo server.ts quando o ESP32 retorna um evento de FECHAMENTO
   async processarRetirada(payload: IMqttEvent, mac?: string) {
     try {
       if (payload.evento !== "FECHAMENTO") {
@@ -93,23 +93,20 @@ export class MedicationIntakeService {
 
       if (payload.status === "FALHA") {
         logger.warn(
-          `[MedicationIntakeService] Dispositivo reportou falha na abertura: ${payload.mensagem}`,
+          `[MedicationIntakeService] Dispositivo reportou falha no fechamento: ${payload.mensagem}`,
         );
-
         return;
       }
 
-      // Trata o timestamp vindo do ESP32
       const dataEvento = !isNaN(Number(payload.timestamp))
         ? new Date(Number(payload.timestamp) * 1000)
         : new Date(payload.timestamp);
 
-      // Encontrar o compartimento correto filtrando pelo MAC do dispositivo E pela posição
       const compartimento = await prisma.compartimento.findFirst({
         where: {
           posicao: payload.compartimento,
           dispositivo: {
-            numero_serie: mac, // Garante que é deste hardware específico
+            numero_serie: mac,
           },
         },
       });
@@ -118,11 +115,9 @@ export class MedicationIntakeService {
         logger.warn(
           `[MedicationIntakeService] Compartimento ${payload.compartimento} não encontrado para o dispositivo ${mac}`,
         );
-
         return;
       }
 
-      // Buscar a última retirada pendente ou atrasada para este compartimento específico
       const retirada = await prisma.retiradaMedicamento.findFirst({
         where: {
           status: {
@@ -132,14 +127,12 @@ export class MedicationIntakeService {
               StatusRetirada.NAO_RETIRADO,
             ],
           },
-
           agendamentoHorario: {
             agendamento: {
               compartimento_id: compartimento.id,
             },
           },
         },
-
         include: {
           agendamentoHorario: {
             include: {
@@ -147,32 +140,27 @@ export class MedicationIntakeService {
             },
           },
         },
-
         orderBy: {
-          horario_programado: "desc", // Garante que pega o agendamento mais recente da fila
+          horario_programado: "desc",
         },
       });
 
       if (!retirada) {
         logger.warn(
-          `[MedicationIntakeService] Nenhuma retirada pendente encontrada para o MAC ${mac} no compartimento ${payload.compartimento}`,
+          `[MedicationIntakeService] Nenhuma retirada ativa encontrada para o MAC ${mac} no compartimento ${payload.compartimento}`,
         );
-
         return;
       }
 
-      //Manter ATRASADO caso o medicamento tenha sido tomado fora do horário
+      // Se o medicamento já estava com status de ATRASADO na tabela, mantemos como ATRASADO no histórico.
+      // Caso contrário, significa que foi tomado no tempo certo, virando RETIRADO
       const status =
         retirada.status === StatusRetirada.ATRASADO
           ? StatusRetirada.ATRASADO
           : StatusRetirada.RETIRADO;
 
-      // Atualizar o registro existente
       await prisma.retiradaMedicamento.update({
-        where: {
-          id: retirada.id,
-        },
-
+        where: { id: retirada.id },
         data: {
           horario_retirada: dataEvento,
           status,
@@ -180,7 +168,7 @@ export class MedicationIntakeService {
       });
 
       logger.info(
-        `[MedicationIntakeService] Retirada ${retirada.id} registrada como ${status}`,
+        `[MedicationIntakeService] Retirada ${retirada.id} concluída e registrada como ${status}`,
       );
     } catch (error) {
       logger.error(

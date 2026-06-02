@@ -12,7 +12,6 @@ const medicationIntakeService = new MedicationIntakeService();
 
 class AgendadorCronService {
   public iniciar() {
-    
     cron.schedule("* * * * *", async () => {
       //Usando o luxon para pegar a hora atual no fuso de São Paulo, já que o servidor hospedado no Render está em outro fuso
       const agora = DateTime.now().setZone("America/Sao_Paulo");
@@ -56,7 +55,8 @@ class AgendadorCronService {
         });
 
         for (const item of agendamentos) {
-          const macAddress = item.agendamento.compartimento.dispositivo.numero_serie;
+          const macAddress =
+            item.agendamento.compartimento.dispositivo.numero_serie;
           const posicao = item.agendamento.compartimento.posicao;
 
           const comando: IMqttCommand = {
@@ -67,7 +67,7 @@ class AgendadorCronService {
 
           // Dispara o comando para o hardware
           mqttService.publishCommand(macAddress, comando);
-          
+
           // Cria o registro PENDENTE no banco
           await medicationIntakeService.criarRegistroPendente(
             item.id,
@@ -85,10 +85,11 @@ class AgendadorCronService {
     });
 
     cron.schedule("* * * * *", async () => {
-      logger.debug("[AgendamentoCronService] Executando rotina de monitoramento de atrasos...");
+      logger.debug(
+        "[AgendamentoCronService] Executando rotina de monitoramento de atrasos...",
+      );
       await medicationIntakeService.monitorarAtrasos();
     });
-
   }
 }
 

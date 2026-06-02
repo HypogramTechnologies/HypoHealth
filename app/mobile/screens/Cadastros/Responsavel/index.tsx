@@ -138,42 +138,41 @@ export function Responsavel() {
   );
 
   const responsaveisFiltrados =
-    responsaveis.filter(item => {
-      const nome =
-        item.usuario?.nome?.toLowerCase() ||
-        "";
+  responsaveis.filter(item => {
+    const nome =
+      item.usuario?.nome?.toLowerCase() ||
+      "";
 
-      const email =
-        item.usuario?.email?.toLowerCase() ||
-        "";
+    const email =
+      item.usuario?.email?.toLowerCase() ||
+      "";
 
-      const termo =
-        busca.toLowerCase();
+    const termo =
+      busca.toLowerCase();
 
-      const matchBusca =
-        nome.includes(termo) ||
-        email.includes(termo);
+    // Agora filtra apenas se o nome incluir o que foi digitado
+    const matchBusca = nome.includes(termo);
 
-      const matchNome =
-        filters.nome
-          ? nome.includes(
-              filters.nome.toLowerCase(),
-            )
-          : true;
+    const matchNome =
+      filters.nome
+        ? nome.includes(
+            filters.nome.toLowerCase(),
+          )
+        : true;
 
-      const matchEmail =
-        filters.email
-          ? email.includes(
-              filters.email.toLowerCase(),
-            )
-          : true;
+    const matchEmail =
+      filters.email
+        ? email.includes(
+            filters.email.toLowerCase(),
+          )
+        : true;
 
-      return (
-        matchBusca &&
-        matchNome &&
-        matchEmail
-      );
-    });
+    return (
+      matchBusca &&
+      matchNome &&
+      matchEmail
+    );
+  });
 
   return (
     <View style={{ flex: 1 }}>

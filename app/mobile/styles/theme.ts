@@ -9,7 +9,7 @@ export const lightTheme = {
     detail: '#1BB39A',
     destaque: '#0E7A67',
     destaque_amarelo: '#F59E0B',
-    text: '#0F172A',
+    text: '#0b0b0b',
     textInverted: '#FFFFFF',
 
     // AJUSTADO
@@ -105,7 +105,7 @@ export const darkTheme = {
     destaque: '#0E7A67',
     destaque_amarelo: '#F59E0B',
     text: '#F8FAFC',
-    textInverted: '#0F172A',
+    textInverted: '#000000',
 
     // AJUSTADO
     opaco: '#A1A1AA',

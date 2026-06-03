@@ -11,6 +11,7 @@ import compartimentoRoutes from "./compartimentoRoutes";
 import dispositivoRoutes from "./dispositivoRoutes";
 import usuarioDispositivoRoutes from "./usuarioDispositivoRoutes";
 import homeRoutes from "./homeRoutes";
+import  retiradaMedicamentoRoutes from "../routes/retiradaMedicamentoRoutes";
 
 const routes = Router();
 
@@ -30,5 +31,6 @@ routes.use("/usuarios", authMiddleware, usuarioRoutes);
 routes.use("/usuario-dispositivo", authMiddleware, usuarioDispositivoRoutes);
 routes.use("/auth", authRoutes);
 routes.use("/usuario-dispositivos", usuarioDispositivoRoutes);
+routes.use("/retirada-medicamentos", retiradaMedicamentoRoutes);
 
 export default routes;

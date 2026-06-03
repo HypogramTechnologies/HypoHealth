@@ -56,6 +56,20 @@ export class UsuarioService {
     };
   }
 
+  async updatePushToken(id: string, token: string): Promise<UsuarioResponseDTO> {
+    const usuario = await prisma.usuario.update({
+      where: { id },
+      data: { push_token: token },
+    });
+
+    return {
+      id: usuario.id,
+      nome: usuario.nome,
+      email: usuario.email,
+      criado_em: usuario.criado_em,
+    };
+  }
+
   async getByEmail(email: string): Promise<UsuarioResponseDTO | null> {
     const usuario = await prisma.usuario.findUnique({
       where: { email },

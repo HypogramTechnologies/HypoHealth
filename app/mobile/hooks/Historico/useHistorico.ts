@@ -1,7 +1,13 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import dayjs from 'dayjs';
-// import { HistoricoService } from '../../services/historicoService';
 import { HistoricoItem } from '../../types/Outros/historico';
+import {
+  RetiradaMedicamentoResponse,
+  RetiradaMedicamentoService,
+} from '../../services/retiradaMedicamentoService';
+import { useAuth } from '../Auth/useAuth';
+import { formatarHora } from '../../utils/formatar';
 
 type Filters = {
   busca: string;
@@ -9,43 +15,58 @@ type Filters = {
   status: 'todos' | 'tomado' | 'nao_tomado';
 };
 
+function mapHistorico(
+  item: RetiradaMedicamentoResponse,
+): HistoricoItem {
+  const medicamentoNome =
+    item.agendamentoHorario?.agendamento?.medicamento?.nome ||
+    'Medicamento';
+
+  return {
+    id: item.id,
+    nome: medicamentoNome,
+    dataHora: item.horario_programado,
+    status: item.status === 'RETIRADO' ? 'tomado' : 'nao_tomado',
+    horaTomado: item.horario_retirada
+      ? formatarHora(item.horario_retirada)
+      : undefined,
+  };
+}
+
 export function useHistorico(filters: Filters) {
   const [data, setData] = useState<HistoricoItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const { usuario } = useAuth();
 
-  useEffect(() => {
-    fetchHistorico();
-  }, []);
+  const usuarioId = usuario?.usuario_proprietario_id;
 
-  const fetchHistorico = async () => {
+  const fetchHistorico = useCallback(async () => {
+    if (!usuarioId) {
+      setData([]);
+      return;
+    }
+
     setLoading(true);
+
     try {
-      // const res = await HistoricoService.getAll();
-      const res: HistoricoItem[] = [
-        {
-          nome: "Buscopam",
-          dataHora: "2024-06-01",
-          status: "tomado",
-          id: "1",
-        },
-        {
-          nome: "Buscopam",
-          dataHora: "2024-06-01",
-          status: "nao_tomado",
-          id: "2",
-        },
-        {
-          nome: "Buscopam",
-          dataHora: "2024-06-02",
-          status: "nao_tomado",
-          id: "3",
-        },
-      ];
-      setData(res);
+      const res = await RetiradaMedicamentoService.getHistorico(usuarioId);
+
+      setData(res.map(mapHistorico));
+    } catch (error) {
+      console.log(error);
+      setData([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, [usuarioId]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchHistorico();
+
+      return () => {};
+    }, [fetchHistorico]),
+  );
 
  
   const filtrado = useMemo(() => {

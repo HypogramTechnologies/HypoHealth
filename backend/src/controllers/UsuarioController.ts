@@ -30,6 +30,19 @@ export class UsuarioController {
     }
   }
 
+  async updatePushToken(req: Request, res: Response) {
+    try {
+      const { id } = req.params as { id: string };
+      const { token } = req.body as { token: string };
+
+      const usuario = await service.updatePushToken(id, token);
+
+      return res.json(usuario);
+    } catch (e: any) {
+      return res.status(400).json({ error: e.message });
+    }
+  }
+
   async getAll(req: Request, res: Response) {
     const usuarios = await service.getAll();
     return res.json(usuarios);

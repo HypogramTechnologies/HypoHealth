@@ -4,11 +4,11 @@ import { DiaSemana } from "@prisma/client";
 import { DateTime } from "luxon";
 import mqttService from "./MqttService";
 import { IMqttCommand } from "../types/IMqtt";
-import { MedicationIntakeService } from "./MedicationIntakeService";
+import { RetiradaMedicamentoService } from "./RetiradaMedicamentoService";
 import { alertService } from "./AlertService";
 import { logger } from "../utils/logger";
 
-const medicationIntakeService = new MedicationIntakeService();
+const retiradaMedicamentoService = new RetiradaMedicamentoService();
 
 class AgendadorCronService {
   public iniciar() {
@@ -69,7 +69,7 @@ class AgendadorCronService {
           mqttService.publishCommand(macAddress, comando);
 
           // Cria o registro PENDENTE no banco
-          await medicationIntakeService.criarRegistroPendente(
+          await retiradaMedicamentoService.criarRegistroPendente(
             item.id,
             agora.toJSDate(),
           );
@@ -88,7 +88,7 @@ class AgendadorCronService {
       logger.debug(
         "[AgendamentoCronService] Executando rotina de monitoramento de atrasos...",
       );
-      await medicationIntakeService.monitorarAtrasos();
+      await retiradaMedicamentoService.monitorarAtrasos();
     });
   }
 }

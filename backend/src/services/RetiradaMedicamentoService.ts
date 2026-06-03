@@ -4,7 +4,7 @@ import { IMqttEvent } from "../types/IMqtt";
 import { alertService } from "./AlertService";
 import { logger } from "../utils/logger";
 
-export class MedicationIntakeService {
+export class RetiradaMedicamentoService {
   // Chamado pelo AgendadorCronService.ts no momento em que o comando MQTT é enviado
   async criarRegistroPendente(
     agendamentoHorarioId: string,
@@ -22,7 +22,7 @@ export class MedicationIntakeService {
       return registro;
     } catch (error) {
       logger.error(
-        `[MedicationIntakeService] Erro ao criar registro pendente: ${String(error)}`,
+        `[RetiradaMedicamentoService] Erro ao criar registro pendente: ${String(error)}`,
       );
       throw error;
     }
@@ -68,7 +68,7 @@ export class MedicationIntakeService {
           });
 
           logger.warn(
-            `[MedicationIntakeService] Retirada ${retirada.id} atualizada para o status: ${novoStatus}`,
+            `[RetiradaMedicamentoService] Retirada ${retirada.id} atualizada para o status: ${novoStatus}`,
           );
 
           // Se mudou para ATRASADO, avisa paciente e responsáveis
@@ -79,7 +79,7 @@ export class MedicationIntakeService {
       }
     } catch (error) {
       logger.error(
-        `[MedicationIntakeService] Erro ao monitorar atrasos: ${String(error)}`,
+        `[RetiradaMedicamentoService] Erro ao monitorar atrasos: ${String(error)}`,
       );
     }
   }
@@ -93,7 +93,7 @@ export class MedicationIntakeService {
 
       if (payload.status === "FALHA") {
         logger.warn(
-          `[MedicationIntakeService] Dispositivo reportou falha no fechamento: ${payload.mensagem}`,
+          `[RetiradaMedicamentoService] Dispositivo reportou falha no fechamento: ${payload.mensagem}`,
         );
         return;
       }
@@ -113,7 +113,7 @@ export class MedicationIntakeService {
 
       if (!compartimento) {
         logger.warn(
-          `[MedicationIntakeService] Compartimento ${payload.compartimento} não encontrado para o dispositivo ${mac}`,
+          `[RetiradaMedicamentoService] Compartimento ${payload.compartimento} não encontrado para o dispositivo ${mac}`,
         );
         return;
       }
@@ -147,7 +147,7 @@ export class MedicationIntakeService {
 
       if (!retirada) {
         logger.warn(
-          `[MedicationIntakeService] Nenhuma retirada ativa encontrada para o MAC ${mac} no compartimento ${payload.compartimento}`,
+          `[RetiradaMedicamentoService] Nenhuma retirada ativa encontrada para o MAC ${mac} no compartimento ${payload.compartimento}`,
         );
         return;
       }
@@ -168,12 +168,96 @@ export class MedicationIntakeService {
       });
 
       logger.info(
-        `[MedicationIntakeService] Retirada ${retirada.id} concluída e registrada como ${status}`,
+        `[RetiradaMedicamentoService] Retirada ${retirada.id} concluída e registrada como ${status}`,
       );
     } catch (error) {
       logger.error(
-        `[MedicationIntakeService] Erro ao processar retirada: ${String(error)}`,
+        `[RetiradaMedicamentoService] Erro ao processar retirada: ${String(error)}`,
       );
+    }
+  }
+
+  // Utilizado para recuperar alertas levando em consideração o usuário e o status da retirada
+  private async recuperarRetiradas(usuarioId: string, status: StatusRetirada[]) {
+    try {
+      const retiradas = await prisma.retiradaMedicamento.findMany({
+      where: {
+        status: {
+          in: status,
+        },
+        agendamentoHorario: {
+          agendamento: {
+            compartimento: {
+              dispositivo: {
+                usuarios: {
+                  some: {
+                    usuario_id: usuarioId,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      include: {
+        agendamentoHorario: {
+          include: {
+            agendamento: {
+              include: {
+                medicamento: {
+                  select: {
+                    nome: true,
+                    dosagem: true,
+                    descricao: true,
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      orderBy: [
+        {
+          horario_programado: "asc",
+        },
+        {
+          status: "asc",
+        },
+      ],
+    });
+      return retiradas;
+    } catch (error) {
+      logger.error(
+        `[RetiradaMedicamentoService] Erro ao recuperar retiradas ativas: ${String(error)}`,
+      );
+      throw error;
+    }
+  }
+
+  // Utilizado para recuperar os alertas (registros de retirada PENDENTE ou ATRASADO) para exibição no app
+  async recuperarAlertas(usuarioId: string) {
+    try {      
+      const alertas = await this.recuperarRetiradas(usuarioId, [StatusRetirada.PENDENTE, StatusRetirada.ATRASADO]);
+
+      return alertas;
+    } catch (error) {
+      logger.error(
+        `[RetiradaMedicamentoService] Erro ao recuperar alertas: ${String(error)}`,
+      );
+      throw error;
+    }
+  }
+
+  // Utilizado para recuperar o histórico do paciente (registros de retirada RETIRADO ou NAO_RETIRADO) para exibição no app
+  async recuperarHistorico(usuarioId: string) {
+    try {
+      const historico = await this.recuperarRetiradas(usuarioId, [StatusRetirada.RETIRADO, StatusRetirada.NAO_RETIRADO]);
+      return historico;
+    } catch (error) {
+      logger.error(
+        `[RetiradaMedicamentoService] Erro ao recuperar histórico: ${String(error)}`,
+      );
+      throw error;
     }
   }
 }

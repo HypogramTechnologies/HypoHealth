@@ -72,4 +72,14 @@ export const UsuarioService = {
   async delete(id: string): Promise<void> {
     await api.delete(`${ENDPOINT}/${id}`);
   },
+
+  async salvarPushToken(id: string, token: string): Promise<void> {
+    try {
+      await api.put(`${ENDPOINT}/${id}/push-token`, { token });
+      console.log("[usuarioService] Push Token enviado para o servidor.");
+    } catch (error) {
+      console.error("[usuarioService] Erro ao salvar push token no backend:", error);
+      throw error;
+    }
+  }
 };

@@ -18,7 +18,7 @@ import { useTheme } from '../../../contexts/Theme/themeContext';
 type FilterForm = {
   busca: string;
   dataFiltro?: Date;
-  tipo: 'todos' | 'erro' | 'aviso' | 'info';
+  tipo: 'todos' | 'aviso' | 'info';
 };
 
 export function Alerta() {
@@ -78,7 +78,6 @@ export function Alerta() {
         <View style={{ flexDirection: 'row', gap: 10, marginTop: 10 }}>
           {[
             { label: 'Todos', value: 'todos' },
-            { label: 'Erro', value: 'erro' },
             { label: 'Aviso', value: 'aviso' },
             { label: 'Info', value: 'info' },
           ].map(item => {

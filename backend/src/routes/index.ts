@@ -11,7 +11,7 @@ import compartimentoRoutes from "./compartimentoRoutes";
 import dispositivoRoutes from "./dispositivoRoutes";
 import usuarioDispositivoRoutes from "./usuarioDispositivoRoutes";
 import homeRoutes from "./homeRoutes";
-import  retiradaMedicamentoRoutes from "../routes/retiradaMedicamentoRoutes";
+import retiradaMedicamentoRoutes from "../routes/retiradaMedicamentoRoutes";
 
 const routes = Router();
 

@@ -56,7 +56,10 @@ export class UsuarioService {
     };
   }
 
-  async updatePushToken(id: string, token: string): Promise<UsuarioResponseDTO> {
+  async updatePushToken(
+    id: string,
+    token: string,
+  ): Promise<UsuarioResponseDTO> {
     const usuario = await prisma.usuario.update({
       where: { id },
       data: { push_token: token },

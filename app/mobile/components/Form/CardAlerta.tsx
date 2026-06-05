@@ -1,4 +1,5 @@
-import { View, Text } from 'react-native';
+import dayjs from 'dayjs';
+import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/Theme/themeContext';
 import { formatarData } from '../../utils/formatar';
@@ -33,11 +34,23 @@ const ALERT_CONFIG: Record<
   },
 };
 
-export function AlertaCard({ item }: { item: AlertaItem }) {
+export function AlertaCard({
+  item,
+  onReabrir,
+  loading = false,
+}: {
+  item: AlertaItem;
+  onReabrir?: () => void | Promise<void>;
+  loading?: boolean;
+}) {
   const { theme } = useTheme();
 
   // 🔥 Usa o config correto
   const config = ALERT_CONFIG[item.tipo];
+  const podeReabrir =
+    Boolean(onReabrir) &&
+    item.tipo === 'aviso' &&
+    dayjs(item.dataHora).isSame(dayjs(), 'day');
 
   return (
     <View
@@ -91,6 +104,34 @@ export function AlertaCard({ item }: { item: AlertaItem }) {
           {formatarData(item.dataHora)}
         </Text>
       </View>
+
+      {podeReabrir ? (
+        <TouchableOpacity
+          onPress={onReabrir}
+          disabled={loading}
+          accessibilityLabel="Reabrir compartimento"
+          style={{
+            paddingVertical: 10,
+            paddingHorizontal: 12,
+            borderRadius: 10,
+            backgroundColor: theme.colors.primary,
+            alignItems: 'center',
+            justifyContent: 'center',
+            minWidth: 44,
+            marginLeft: 12,
+          }}
+        >
+          {loading ? (
+            <ActivityIndicator size="small" color={theme.colors.text} />
+          ) : (
+            <MaterialCommunityIcons
+              name="lock-open-variant"
+              size={20}
+              color={theme.colors.text}
+            />
+          )}
+        </TouchableOpacity>
+      ) : null}
     </View>
   );
 }

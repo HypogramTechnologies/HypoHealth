@@ -1,10 +1,18 @@
 import prisma from "../database/db";
 import { StatusRetirada } from "@prisma/client";
-import { IMqttEvent } from "../types/IMqtt";
+import { IMqttCommand, IMqttEvent } from "../types/IMqtt";
 import { alertService } from "./AlertService";
+import mqttService from "./MqttService";
 import { logger } from "../utils/logger";
+import { DateTime } from "luxon";
+
+const FUSO_SAO_PAULO = "America/Sao_Paulo";
 
 export class RetiradaMedicamentoService {
+  private obterAgora() {
+    return DateTime.now().setZone(FUSO_SAO_PAULO);
+  }
+
   // Chamado pelo AgendadorCronService.ts no momento em que o comando MQTT é enviado
   async criarRegistroPendente(
     agendamentoHorarioId: string,
@@ -81,6 +89,85 @@ export class RetiradaMedicamentoService {
       logger.error(
         `[RetiradaMedicamentoService] Erro ao monitorar atrasos: ${String(error)}`,
       );
+    }
+  }
+
+  async reabrirCompartimento(retiradaId: string) {
+    try {
+      const retirada = await prisma.retiradaMedicamento.findUnique({
+        where: { id: retiradaId },
+        include: {
+          agendamentoHorario: {
+            include: {
+              agendamento: {
+                include: {
+                  compartimento: {
+                    include: {
+                      dispositivo: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      if (!retirada) {
+        throw new Error("Retirada não encontrada.");
+      }
+
+      const statusReabertura: StatusRetirada[] = [
+        StatusRetirada.ATRASADO,
+        StatusRetirada.NAO_RETIRADO,
+      ];
+
+      if (!statusReabertura.includes(retirada.status)) {
+        throw new Error(
+          "Somente retiradas atrasadas ou não retiradas podem ser reabertas.",
+        );
+      }
+
+      const agora = this.obterAgora();
+      const horarioProgramado = DateTime.fromJSDate(
+        retirada.horario_programado,
+      ).setZone(FUSO_SAO_PAULO);
+
+      if (!horarioProgramado.hasSame(agora, "day")) {
+        throw new Error("Somente retiradas do dia atual podem ser reabertas.");
+      }
+
+      const compartimento =
+        retirada.agendamentoHorario.agendamento.compartimento;
+      const dispositivo = compartimento.dispositivo;
+
+      const comando: IMqttCommand = {
+        acao: "ABRIR",
+        compartimento: compartimento.posicao,
+        timestamp: agora.toUTC().toFormat("yyyy-MM-dd'T'HH:mm:ss'Z'"),
+      };
+
+      mqttService.publishCommand(dispositivo.numero_serie, comando);
+
+      const retiradaReaberta = await prisma.retiradaMedicamento.update({
+        where: { id: retirada.id },
+        data: {
+          horario_programado: agora.toJSDate(),
+          horario_retirada: null,
+          status: StatusRetirada.PENDENTE,
+        },
+      });
+
+      logger.info(
+        `[RetiradaMedicamentoService] Retirada ${retirada.id} reaberta para o compartimento ${compartimento.posicao}`,
+      );
+
+      return retiradaReaberta;
+    } catch (error) {
+      logger.error(
+        `[RetiradaMedicamentoService] Erro ao reabrir compartimento: ${String(error)}`,
+      );
+      throw error;
     }
   }
 
@@ -178,53 +265,56 @@ export class RetiradaMedicamentoService {
   }
 
   // Utilizado para recuperar alertas levando em consideração o usuário e o status da retirada
-  private async recuperarRetiradas(usuarioId: string, status: StatusRetirada[]) {
+  private async recuperarRetiradas(
+    usuarioId: string,
+    status: StatusRetirada[],
+  ) {
     try {
       const retiradas = await prisma.retiradaMedicamento.findMany({
-      where: {
-        status: {
-          in: status,
-        },
-        agendamentoHorario: {
-          agendamento: {
-            compartimento: {
-              dispositivo: {
-                usuarios: {
-                  some: {
-                    usuario_id: usuarioId,
+        where: {
+          status: {
+            in: status,
+          },
+          agendamentoHorario: {
+            agendamento: {
+              compartimento: {
+                dispositivo: {
+                  usuarios: {
+                    some: {
+                      usuario_id: usuarioId,
+                    },
                   },
                 },
               },
             },
           },
         },
-      },
-      include: {
-        agendamentoHorario: {
-          include: {
-            agendamento: {
-              include: {
-                medicamento: {
-                  select: {
-                    nome: true,
-                    dosagem: true,
-                    descricao: true,
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      orderBy: [
-        {
-          horario_programado: "asc",
+        include: {
+          agendamentoHorario: {
+            include: {
+              agendamento: {
+                include: {
+                  medicamento: {
+                    select: {
+                      nome: true,
+                      dosagem: true,
+                      descricao: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
-        {
-          status: "asc",
-        },
-      ],
-    });
+        orderBy: [
+          {
+            horario_programado: "asc",
+          },
+          {
+            status: "asc",
+          },
+        ],
+      });
       return retiradas;
     } catch (error) {
       logger.error(
@@ -236,8 +326,11 @@ export class RetiradaMedicamentoService {
 
   // Utilizado para recuperar os alertas (registros de retirada PENDENTE ou ATRASADO) para exibição no app
   async recuperarAlertas(usuarioId: string) {
-    try {      
-      const alertas = await this.recuperarRetiradas(usuarioId, [StatusRetirada.PENDENTE, StatusRetirada.ATRASADO]);
+    try {
+      const alertas = await this.recuperarRetiradas(usuarioId, [
+        StatusRetirada.PENDENTE,
+        StatusRetirada.ATRASADO,
+      ]);
 
       return alertas;
     } catch (error) {
@@ -251,7 +344,10 @@ export class RetiradaMedicamentoService {
   // Utilizado para recuperar o histórico do paciente (registros de retirada RETIRADO ou NAO_RETIRADO) para exibição no app
   async recuperarHistorico(usuarioId: string) {
     try {
-      const historico = await this.recuperarRetiradas(usuarioId, [StatusRetirada.RETIRADO, StatusRetirada.NAO_RETIRADO]);
+      const historico = await this.recuperarRetiradas(usuarioId, [
+        StatusRetirada.RETIRADO,
+        StatusRetirada.NAO_RETIRADO,
+      ]);
       return historico;
     } catch (error) {
       logger.error(

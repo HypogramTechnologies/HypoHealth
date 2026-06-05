@@ -4,9 +4,11 @@ import {
   Text,
   FlatList,
   TouchableOpacity,
+  Alert,
 } from 'react-native';
 
 import { useForm } from 'react-hook-form';
+import { useState } from 'react';
 
 import { useHistorico } from '../../../hooks/Historico/useHistorico';
 import { formatarData } from '../../../utils/formatar';
@@ -15,6 +17,7 @@ import { HistoricoCard } from '../../../components/Form/CardHistorico';
 import { InputField } from '../../../components/Form/InputField';
 import { DateField } from '../../../components/Form/InputDate';
 import { useTheme } from '../../../contexts/Theme/themeContext';
+import { RetiradaMedicamentoService } from '../../../services/retiradaMedicamentoService';
 
 type FilterForm = {
   busca: string;
@@ -31,15 +34,33 @@ export function Historico() {
     },
   });
   const { theme } = useTheme();
+  const [reabrindoId, setReabrindoId] = useState<string | null>(null);
   const busca = watch('busca');
   const dataFiltro = watch('dataFiltro');
   const status = watch('status');
 
-  const { grouped, dates } = useHistorico({
+  const { grouped, dates, refetch } = useHistorico({
     busca,
     dataFiltro,
     status,
   });
+
+  const handleReabrir = async (retiradaId: string) => {
+    try {
+      setReabrindoId(retiradaId);
+      await RetiradaMedicamentoService.reabrirRetirada(retiradaId);
+      await refetch();
+    } catch (error) {
+      Alert.alert(
+        'Erro',
+        error instanceof Error
+          ? error.message
+          : 'Não foi possível reabrir o compartimento.',
+      );
+    } finally {
+      setReabrindoId(null);
+    }
+  };
 
   return (
     <View style={{ flex: 1, paddingTop: 20, backgroundColor: theme.colors.background }}>
@@ -143,7 +164,12 @@ export function Historico() {
 
          
             {grouped[date].map(item => (
-              <HistoricoCard key={item.id} item={item} />
+              <HistoricoCard
+                key={item.id}
+                item={item}
+                onReabrir={item.status === 'nao_tomado' ? () => handleReabrir(item.id) : undefined}
+                loading={reabrindoId === item.id}
+              />
             ))}
           </View>
         )}

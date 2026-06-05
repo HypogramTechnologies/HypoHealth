@@ -110,5 +110,6 @@ export function useHistorico(filters: Filters) {
     grouped,
     dates,
     loading,
+    refetch: fetchHistorico,
   };
 }

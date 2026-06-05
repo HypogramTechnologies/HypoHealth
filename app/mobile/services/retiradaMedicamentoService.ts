@@ -34,4 +34,9 @@ export const RetiradaMedicamentoService = {
     const response = await api.get(`${ENDPOINT}/historico/${usuarioId}`);
     return response.data;
   },
+
+  async reabrirRetirada(retiradaId: string): Promise<RetiradaMedicamentoResponse> {
+    const response = await api.post(`${ENDPOINT}/reabrir/${retiradaId}`);
+    return response.data;
+  },
 };

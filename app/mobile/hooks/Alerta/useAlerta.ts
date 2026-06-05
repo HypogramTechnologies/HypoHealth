@@ -86,5 +86,5 @@ export function useAlerta(filters: Filters) {
     });
   }, [data, filters]);
 
-  return { data: filtrado, loading };
+  return { data: filtrado, loading, refetch: fetchAlertas };
 }

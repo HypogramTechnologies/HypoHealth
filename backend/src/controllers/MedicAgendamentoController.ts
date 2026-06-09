@@ -87,6 +87,7 @@ export class MedicAgendamentoController {
             intervalo_horas,
 
             horarios,
+            ativo: true
           },
           tx,
         );
@@ -154,20 +155,19 @@ export class MedicAgendamentoController {
           },
         });
 
-        // 2 - DELETA AGENDAMENTOS ANTIGOS
-        await tx.agendamento.deleteMany({
+        // 2 - DESATIVA AGENDAMENTOS ANTIGOS
+        await tx.agendamento.updateMany({
           where: {
             medicamento_id: id,
+            ativo: true,
+          },
 
-            tomado: false,
-
-            data: {
-              gte: new Date(),
-            },
+          data: {
+            ativo: false,
           },
         });
 
-        // 3 - RECRIA AGENDAMENTOS
+        // 3 - CRIA NOVO AGENDAMENTO
         const novosAgendamentos = await agendamentoService.create(
           {
             medicamento_id: id,
@@ -205,12 +205,16 @@ export class MedicAgendamentoController {
   async getById(req: Request, res: Response) {
     try {
       const id = String(req.params.id);
-      console.log("ID recebido no getById no controller:", id);
+
       const medicamento = await prisma.medicamento.findUnique({
         where: { id },
 
         include: {
           agendamentos: {
+            where: {
+              ativo: true,
+            },
+            
             include: {
               compartimento: true,
 
@@ -221,6 +225,10 @@ export class MedicAgendamentoController {
                   },
                 ],
               },
+            },
+
+            orderBy: {
+              criado_em: "desc",
             },
           },
         },
@@ -233,7 +241,12 @@ export class MedicAgendamentoController {
       }
 
       const primeiroAgendamento = medicamento.agendamentos[0];
-      console.log("Primeiro agendamento encontrado:", primeiroAgendamento);
+
+      console.log(
+        "Primeiro agendamento encontrado:",
+        primeiroAgendamento,
+      );
+
       const resposta = {
         id: medicamento.id,
 
@@ -241,16 +254,18 @@ export class MedicAgendamentoController {
         dosagem: medicamento.dosagem,
         descricao: medicamento.descricao,
 
-        data_inicio: primeiroAgendamento.data_inicio,
-        data_fim: primeiroAgendamento.data_fim,
+        data_inicio: primeiroAgendamento?.data_inicio,
+        data_fim: primeiroAgendamento?.data_fim,
 
         tipo: primeiroAgendamento?.tipo,
 
-        intervalo_horas: primeiroAgendamento?.intervalo_horas,
+        intervalo_horas:
+          primeiroAgendamento?.intervalo_horas,
 
-        compartimento_ids: medicamento.agendamentos.map(
-          (a) => a.compartimento_id,
-        ),
+        compartimento_ids:
+          medicamento.agendamentos.map(
+            (a) => a.compartimento_id,
+          ),
 
         horarios:
           primeiroAgendamento?.horarios.map((h) =>

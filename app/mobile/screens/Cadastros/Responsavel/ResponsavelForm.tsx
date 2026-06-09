@@ -10,7 +10,7 @@ import { RootStackParamList } from "../../../navigation/types";
 import { useMensagem } from "../../../hooks/Outros/useMensagem";
 import { useResponsavel } from "../../../hooks/Responsavel/useResponsavel";
 import { TypeMessage } from "@/mobile/types/Outros/messageType";
-import { Responsavel as ResponsavelType } from "@/mobile/types/Cadastros/responsavel";
+import { ResponsavelDetalhado as ResponsavelType } from "@/mobile/types/Cadastros/responsavel";
 
 // Definindo explicitamente o que a rota pode receber localmente para evitar erros de tipagem
 type ResponsavelFormRouteProp = RouteProp<RootStackParamList, "ResponsavelForm"> & {

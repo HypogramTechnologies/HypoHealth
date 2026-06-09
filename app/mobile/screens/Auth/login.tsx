@@ -47,7 +47,6 @@ export default function LoginScreen() {
       login(result);
 
       // 3. Verificando os dispositivos (como solicitado no seu snippet)
-      console.log("Dispositivos vinculados:", result.usuario?.dispositivos);
 
       showMessage("Login realizado com sucesso", "success");
 

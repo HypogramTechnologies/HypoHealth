@@ -72,6 +72,11 @@ export function useMedicamentoForm(mode: Mode, medicamentoId?: string) {
 
   const horarios = watch("horarios");
 
+  const hasHorariosDuplicados = (horarios: string[]) => {
+    const set = new Set(horarios);
+    return set.size !== horarios.length;
+  };
+
   const toggleCompartimento = (id: string | number) => {
     const compartimentoId = String(id);
 
@@ -98,40 +103,25 @@ export function useMedicamentoForm(mode: Mode, medicamentoId?: string) {
     );
   };
 
- const somarHoras = (
-  horario: string,
-  horas: number,
-) => {
-  const [h, m] = horario
-    .split(":")
-    .map(Number);
+  const somarHoras = (horario: string, horas: number) => {
+    const [h, m] = horario.split(":").map(Number);
 
-  const minutosIniciais =
-    h * 60 + m;
+    const minutosIniciais = h * 60 + m;
 
-  const minutosSomados =
-    minutosIniciais +
-    horas * 60;
+    const minutosSomados = minutosIniciais + horas * 60;
 
-  // corrige negativos
-  const minutosDia =
-    ((minutosSomados %
-      (24 * 60)) +
-      24 * 60) %
-    (24 * 60);
+    // corrige negativos
+    const minutosDia = ((minutosSomados % (24 * 60)) + 24 * 60) % (24 * 60);
 
-  const novaHora =
-    Math.floor(
-      minutosDia / 60,
-    );
+    const novaHora = Math.floor(minutosDia / 60);
 
-  const novoMinuto =
-    minutosDia % 60;
+    const novoMinuto = minutosDia % 60;
 
-  return `${String(novaHora).padStart(2, "0")}:${String(
-    novoMinuto,
-  ).padStart(2, "0")}`;
-};
+    return `${String(novaHora).padStart(2, "0")}:${String(novoMinuto).padStart(
+      2,
+      "0",
+    )}`;
+  };
 
   const gerarHorarios = (inicio = "08:00", intervaloHoras = 8) => {
     const quantidade = Math.floor(24 / intervaloHoras);
@@ -146,64 +136,42 @@ export function useMedicamentoForm(mode: Mode, medicamentoId?: string) {
   };
 
   const horarioCompleto = (value: string) => {
-  return /^\d{2}:\d{2}$/.test(value);
-};
+    return /^\d{2}:\d{2}$/.test(value);
+  };
 
-const updateHorario = (
-  index: number,
-  value: string,
-) => {
-  // sempre atualiza visualmente o campo
-  const novaLista = [...horarios];
+  const updateHorario = (index: number, value: string) => {
+    // sempre atualiza visualmente o campo
+    const novaLista = [...horarios];
 
-  novaLista[index] = value;
+    novaLista[index] = value;
 
-  setValue("horarios", novaLista);
+    setValue("horarios", novaLista);
 
-  // HORARIO FIXO
-  if (tipo === "HORARIO_FIXO") {
-    return;
-  }
+    // HORARIO FIXO
+    if (tipo === "HORARIO_FIXO") {
+      return;
+    }
 
-  // ainda não terminou de digitar
-  if (!horarioCompleto(value)) {
-    return;
-  }
+    // ainda não terminou de digitar
+    if (!horarioCompleto(value)) {
+      return;
+    }
 
-  // INTERVALO
-  const intervaloAtual =
-    intervalo || 8;
+    // INTERVALO
+    const intervaloAtual = intervalo || 8;
 
-  const quantidade =
-    Math.floor(
-      24 / intervaloAtual,
-    );
+    const quantidade = Math.floor(24 / intervaloAtual);
 
-  const novaListaIntervalo: string[] =
-    [];
+    const novaListaIntervalo: string[] = [];
 
-  for (
-    let i = 0;
-    i < quantidade;
-    i++
-  ) {
-    const diferenca =
-      i - index;
+    for (let i = 0; i < quantidade; i++) {
+      const diferenca = i - index;
 
-    novaListaIntervalo.push(
-      somarHoras(
-        value,
-        diferenca *
-          intervaloAtual,
-      ),
-    );
-  }
+      novaListaIntervalo.push(somarHoras(value, diferenca * intervaloAtual));
+    }
 
-  setValue(
-    "horarios",
-    novaListaIntervalo,
-  );
-};
+    setValue("horarios", novaListaIntervalo);
+  };
 
   useEffect(() => {
     if (tipo !== "INTERVALO") {
@@ -217,63 +185,53 @@ const updateHorario = (
     setValue("horarios", novaLista);
   }, [tipo, intervalo]);
 
-  const save = async (data: MedicamentoFormData) => {
+  type SaveResult = {
+    success: boolean;
+    message: string;
+  };
+
+  const save = async (data: MedicamentoFormData): Promise<SaveResult> => {
     setLoading(true);
 
     try {
-      if (mode === "create") {
-        const payload = {
-          nome: data.medicamentoNome,
-
-          dosagem: data.medicamentoDosagem,
-
-          descricao: data.medicamentoDescricao,
-
-          usuario_id: usuario?.usuario_proprietario_id,
-
-          compartimento_ids: data.compartimentos,
-
-          tipo: data.tipo,
-
-          data_inicio: data.data_inicio.toISOString(),
-
-          data_fim: data.data_fim?.toISOString(),
-
-          intervalo_horas: data.intervalo_horas,
-
-          horarios: data.horarios,
+      if (hasHorariosDuplicados(data.horarios)) {
+        return {
+          success: false,
+          message: "Não é possível salvar horários duplicados.",
         };
+      }
 
+      const payload = {
+        nome: data.medicamentoNome,
+        dosagem: data.medicamentoDosagem,
+        descricao: data.medicamentoDescricao,
+        usuario_id: usuario?.usuario_proprietario_id,
+        compartimento_ids: data.compartimentos,
+        tipo: data.tipo,
+        data_inicio: data.data_inicio.toISOString(),
+        data_fim: data.data_fim?.toISOString(),
+        intervalo_horas: data.intervalo_horas,
+        horarios: data.horarios,
+      };
+
+      if (mode === "create") {
         await MedicamentoService.create(payload);
       } else if (medicamentoId) {
-        const payload = {
-          nome: data.medicamentoNome,
-
-          dosagem: data.medicamentoDosagem,
-
-          descricao: data.medicamentoDescricao,
-
-          usuario_id: usuario?.usuario_proprietario_id,
-
-          compartimento_ids: data.compartimentos,
-
-          tipo: data.tipo,
-
-          data_inicio: data.data_inicio.toISOString(),
-
-          data_fim: data.data_fim?.toISOString(),
-
-          intervalo_horas: data.intervalo_horas,
-
-          horarios: data.horarios,
-        };
-
         await MedicamentoService.update(medicamentoId, payload);
       }
 
-      return true;
-    } catch {
-      return false;
+      return {
+        success: true,
+        message:
+          mode === "create"
+            ? "Medicamento criado com sucesso!"
+            : "Medicamento atualizado com sucesso!",
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        message: error?.response?.data?.message || "Erro ao salvar medicamento",
+      };
     } finally {
       setLoading(false);
     }

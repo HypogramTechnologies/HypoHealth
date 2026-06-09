@@ -19,7 +19,7 @@ import {
 
 import { Mode } from "@/mobile/types/Outros/mode";
 
-import { Responsavel } from "@/mobile/types/Cadastros/responsavel";
+import { ResponsavelDetalhado as Responsavel } from "@/mobile/types/Cadastros/responsavel";
 
 interface UseResponsavelProps {
   mode?: Mode;

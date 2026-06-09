@@ -33,7 +33,6 @@ export class AuthService {
       throw new Error("Usuário não encontrado");
     }
 
-    console.log("usuario recuperado:", usuario);
     // Primeiro dispositivo do usuário
     const primeiroDispositivoId = usuario.dispositivos[0]?.dispositivo_id;
 

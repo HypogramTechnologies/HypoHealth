@@ -87,7 +87,7 @@ export class MedicAgendamentoController {
             intervalo_horas,
 
             horarios,
-            ativo: true
+            ativo: true,
           },
           tx,
         );
@@ -214,7 +214,7 @@ export class MedicAgendamentoController {
             where: {
               ativo: true,
             },
-            
+
             include: {
               compartimento: true,
 
@@ -242,10 +242,7 @@ export class MedicAgendamentoController {
 
       const primeiroAgendamento = medicamento.agendamentos[0];
 
-      console.log(
-        "Primeiro agendamento encontrado:",
-        primeiroAgendamento,
-      );
+      console.log("Primeiro agendamento encontrado:", primeiroAgendamento);
 
       const resposta = {
         id: medicamento.id,
@@ -259,13 +256,11 @@ export class MedicAgendamentoController {
 
         tipo: primeiroAgendamento?.tipo,
 
-        intervalo_horas:
-          primeiroAgendamento?.intervalo_horas,
+        intervalo_horas: primeiroAgendamento?.intervalo_horas,
 
-        compartimento_ids:
-          medicamento.agendamentos.map(
-            (a) => a.compartimento_id,
-          ),
+        compartimento_ids: medicamento.agendamentos.map(
+          (a) => a.compartimento_id,
+        ),
 
         horarios:
           primeiroAgendamento?.horarios.map((h) =>

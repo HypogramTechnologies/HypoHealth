@@ -13,7 +13,6 @@ export class MedicAgendamentoQueryService {
 
         include: {
           agendamentos: {
-            
             include: {
               compartimento: true,
 
@@ -74,7 +73,7 @@ export class MedicAgendamentoQueryService {
   async getAgendamentoCompleto(agendamento_id: string) {
     try {
       const agendamento = await prisma.agendamento.findUnique({
-        where: { id: agendamento_id , ativo: true,},
+        where: { id: agendamento_id, ativo: true },
         include: {
           medicamento: true,
           compartimento: true,
@@ -101,7 +100,8 @@ export class MedicAgendamentoQueryService {
     try {
       const agendamentos = await prisma.agendamento.findMany({
         where: {
-    ativo: true},
+          ativo: true,
+        },
         include: {
           medicamento: true,
           compartimento: true,
@@ -167,7 +167,7 @@ export class MedicAgendamentoQueryService {
       // 2. buscar agendamentos
       const agendamentos = await prisma.agendamento.findMany({
         where: {
-          ativo:true,
+          ativo: true,
           compartimento: {
             dispositivo_id: {
               in: dispositivosIds,

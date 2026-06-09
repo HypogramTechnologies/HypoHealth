@@ -35,7 +35,7 @@ export function useProgramacao() {
           usuario.usuario_proprietario_id,
         );
 
-      console.log('Programação carregada:', response);
+      
       setDados(response);
 
     } catch (error) {

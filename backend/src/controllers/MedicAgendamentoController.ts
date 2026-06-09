@@ -26,8 +26,6 @@ export class MedicAgendamentoController {
         data_fim,
 
         intervalo_horas,
-
-        horario,
         horarios,
       } = req.body;
 
@@ -49,9 +47,9 @@ export class MedicAgendamentoController {
 
       // VALIDAÇÃO PARA INTERVALO
       if (tipo === "INTERVALO") {
-        if (!horario) {
+        if (!horarios || horarios.length === 0) {
           return res.status(400).json({
-            erro: "INTERVALO exige 'horario'.",
+            erro: "INTERVALO exige 'horarios'.",
           });
         }
 
@@ -88,7 +86,6 @@ export class MedicAgendamentoController {
 
             intervalo_horas,
 
-            horario,
             horarios,
           },
           tx,
@@ -128,7 +125,6 @@ export class MedicAgendamentoController {
 
         intervalo_horas,
 
-        horario,
         horarios,
       } = req.body;
 
@@ -162,6 +158,12 @@ export class MedicAgendamentoController {
         await tx.agendamento.deleteMany({
           where: {
             medicamento_id: id,
+
+            tomado: false,
+
+            data: {
+              gte: new Date(),
+            },
           },
         });
 
@@ -179,7 +181,6 @@ export class MedicAgendamentoController {
 
             intervalo_horas,
 
-            horario,
             horarios,
           },
           tx,
@@ -214,9 +215,11 @@ export class MedicAgendamentoController {
               compartimento: true,
 
               horarios: {
-                orderBy: {
-                  horario: "asc",
-                },
+                orderBy: [
+                  {
+                    horario: "asc",
+                  },
+                ],
               },
             },
           },

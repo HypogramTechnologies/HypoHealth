@@ -6,7 +6,6 @@ export class HomeService {
 
   async header(usuarioId: string) {
     const hoje = new Date();
-
     const medicamentosHoje =
       await this.medicService.getMedicamentosDoDia(usuarioId);
 

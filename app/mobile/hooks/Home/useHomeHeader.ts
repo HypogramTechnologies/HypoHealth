@@ -6,34 +6,53 @@ import {
 
 import { buscarHomeHeader } from "../../services/homeService";
 
-export function useHomeHeader(usuarioId: string) {
+type HomeHeaderData = {
+  dataAtual: string;
+  totalMedicamentosHoje: number;
+  totalTomadosHoje: number;
+};
 
+export function useHomeHeader(
+  usuarioId: string,
+) {
   const [dados, setDados] =
-    useState<any>(null);
+    useState<HomeHeaderData | null>(
+      null,
+    );
+
+  const [loading, setLoading] =
+    useState(true);
 
   async function carregar() {
     try {
+      if (!usuarioId) {
+        return;
+      }
+
+      setLoading(true);
 
       const response =
-        await buscarHomeHeader(usuarioId);
+        await buscarHomeHeader(
+          usuarioId,
+        );
 
       setDados(response);
-
     } catch (error) {
       console.log(error);
+    } finally {
+      setLoading(false);
     }
   }
 
   useFocusEffect(
     useCallback(() => {
-
       carregar();
-
-    }, []),
+    }, [usuarioId]),
   );
 
   return {
     dados,
+    loading,
     recarregar: carregar,
   };
 }

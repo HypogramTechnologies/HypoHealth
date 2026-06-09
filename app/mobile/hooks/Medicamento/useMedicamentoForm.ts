@@ -98,44 +98,129 @@ export function useMedicamentoForm(mode: Mode, medicamentoId?: string) {
     );
   };
 
-  const updateHorario = (index: number, value: string) => {
-    const novaLista = [...horarios];
+ const somarHoras = (
+  horario: string,
+  horas: number,
+) => {
+  const [h, m] = horario
+    .split(":")
+    .map(Number);
 
-    novaLista[index] = value;
+  const minutosIniciais =
+    h * 60 + m;
 
-    setValue("horarios", novaLista);
-  };
+  const minutosSomados =
+    minutosIniciais +
+    horas * 60;
 
-  const gerarHorarios = (inicio = "08:00", h = 8) => {
-    const [hora, min] = inicio.split(":").map(Number);
+  // corrige negativos
+  const minutosDia =
+    ((minutosSomados %
+      (24 * 60)) +
+      24 * 60) %
+    (24 * 60);
 
-    const total = Math.floor(24 / h);
+  const novaHora =
+    Math.floor(
+      minutosDia / 60,
+    );
+
+  const novoMinuto =
+    minutosDia % 60;
+
+  return `${String(novaHora).padStart(2, "0")}:${String(
+    novoMinuto,
+  ).padStart(2, "0")}`;
+};
+
+  const gerarHorarios = (inicio = "08:00", intervaloHoras = 8) => {
+    const quantidade = Math.floor(24 / intervaloHoras);
 
     const lista: string[] = [];
 
-    for (let i = 0; i < total; i++) {
-      const nova = (hora + i * h) % 24;
-
-      lista.push(
-        `${String(nova).padStart(2, "0")}:${String(min).padStart(2, "0")}`,
-      );
+    for (let i = 0; i < quantidade; i++) {
+      lista.push(somarHoras(inicio, i * intervaloHoras));
     }
 
-    setValue("horarios", lista);
+    return lista;
   };
 
+  const horarioCompleto = (value: string) => {
+  return /^\d{2}:\d{2}$/.test(value);
+};
+
+const updateHorario = (
+  index: number,
+  value: string,
+) => {
+  // sempre atualiza visualmente o campo
+  const novaLista = [...horarios];
+
+  novaLista[index] = value;
+
+  setValue("horarios", novaLista);
+
+  // HORARIO FIXO
+  if (tipo === "HORARIO_FIXO") {
+    return;
+  }
+
+  // ainda não terminou de digitar
+  if (!horarioCompleto(value)) {
+    return;
+  }
+
+  // INTERVALO
+  const intervaloAtual =
+    intervalo || 8;
+
+  const quantidade =
+    Math.floor(
+      24 / intervaloAtual,
+    );
+
+  const novaListaIntervalo: string[] =
+    [];
+
+  for (
+    let i = 0;
+    i < quantidade;
+    i++
+  ) {
+    const diferenca =
+      i - index;
+
+    novaListaIntervalo.push(
+      somarHoras(
+        value,
+        diferenca *
+          intervaloAtual,
+      ),
+    );
+  }
+
+  setValue(
+    "horarios",
+    novaListaIntervalo,
+  );
+};
+
   useEffect(() => {
-    if (tipo === "INTERVALO") {
-      gerarHorarios(horarios[0] || "08:00", intervalo);
+    if (tipo !== "INTERVALO") {
+      return;
     }
+
+    const primeiroHorario = horarios[0] || "08:00";
+
+    const novaLista = gerarHorarios(primeiroHorario, intervalo);
+
+    setValue("horarios", novaLista);
   }, [tipo, intervalo]);
 
   const save = async (data: MedicamentoFormData) => {
     setLoading(true);
 
     try {
-      const primeiroHorario = data.horarios[0];
-      
       if (mode === "create") {
         const payload = {
           nome: data.medicamentoNome,
@@ -156,9 +241,7 @@ export function useMedicamentoForm(mode: Mode, medicamentoId?: string) {
 
           intervalo_horas: data.intervalo_horas,
 
-          horario: data.tipo === "INTERVALO" ? primeiroHorario : undefined,
-
-          horarios: data.tipo === "HORARIO_FIXO" ? data.horarios : undefined,
+          horarios: data.horarios,
         };
 
         await MedicamentoService.create(payload);
@@ -182,9 +265,7 @@ export function useMedicamentoForm(mode: Mode, medicamentoId?: string) {
 
           intervalo_horas: data.intervalo_horas,
 
-          horario: data.tipo === "INTERVALO" ? primeiroHorario : undefined,
-
-          horarios: data.tipo === "HORARIO_FIXO" ? data.horarios : undefined,
+          horarios: data.horarios,
         };
 
         await MedicamentoService.update(medicamentoId, payload);

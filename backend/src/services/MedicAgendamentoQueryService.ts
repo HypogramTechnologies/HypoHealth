@@ -119,6 +119,124 @@ export class MedicAgendamentoQueryService {
     }
   }
 
+  // // Buscar medicamentos do dia filtrado por usuário
+  // async getMedicamentosDoDia(usuarioId: string) {
+  //   try {
+  //     const hoje = new Date();
+
+  //     const inicio = new Date(hoje);
+  //     inicio.setHours(0, 0, 0, 0);
+
+  //     const fim = new Date(hoje);
+  //     fim.setHours(23, 59, 59, 999);
+
+  //     console.log(inicio, fim);
+  //     // 1. pegar dispositivos do usuário (SEM JOIN profundo)
+  //     const dispositivos = await prisma.usuarioDispositivo.findMany({
+  //       where: {
+  //         usuario_id: usuarioId,
+  //       },
+  //       select: {
+  //         dispositivo_id: true,
+  //       },
+  //     });
+
+  //     const dispositivosIds = dispositivos.map((d) => d.dispositivo_id);
+
+  //     // se não tiver dispositivo, retorna vazio
+  //     if (dispositivosIds.length === 0) {
+  //       return [];
+  //     }
+
+  //     const diaSemana = hoje.getDay() + 1;
+  //     // 2. buscar agendamentos de forma simples e segura
+  //     const agendamentos = await prisma.agendamento.findMany({
+  //       where: {
+  //         compartimento: {
+  //           dispositivo_id: {
+  //             in: dispositivosIds,
+  //           },
+  //           posicao: {
+  //             equals: diaSemana,
+  //           },
+  //         },
+  //       },
+  //       include: {
+  //         medicamento: {
+  //           select: {
+  //             id: true,
+  //             nome: true,
+  //             dosagem: true,
+  //           },
+  //         },
+
+  //         compartimento: {
+  //           select: {
+  //             id: true,
+  //             dispositivo_id: true,
+  //             posicao: true,
+  //           },
+  //         },
+
+  //         horarios: {
+  //           include: {
+  //             retiradas: {
+  //               where: {
+  //                 horario_programado: {
+  //                   gte: inicio,
+  //                   lte: fim,
+  //                 },
+  //               },
+  //             },
+  //           },
+  //           orderBy: {
+  //             horario: "asc",
+  //           },
+  //         },
+  //       },
+  //     });
+
+  //     // 3. normalizar resposta
+  //     const resultado = agendamentos.map((agendamento) => {
+  //       return {
+  //         id: agendamento.id,
+
+  //         medicamento: {
+  //           id: agendamento.medicamento.id,
+  //           nome: agendamento.medicamento.nome,
+  //           dosagem: agendamento.medicamento.dosagem,
+  //         },
+
+  //         horarios: agendamento.horarios.map((h) => {
+  //           const retirada = h.retiradas[0];
+
+  //           let status: "PENDENTE" | "RETIRADO" | "ATRASADO" | "NAO_RETIRADO" =
+  //             retirada?.status ?? "PENDENTE";
+
+  //           const agora = new Date();
+
+  //           if (!retirada && new Date(h.horario) < agora) {
+  //             status = "ATRASADO";
+  //           }
+
+  //           return {
+  //             id: h.id,
+  //             horario: h.horario.toISOString().substring(11, 16),
+  //             status,
+  //             horario_retirada: retirada?.horario_retirada ?? null,
+  //           };
+  //         }),
+  //       };
+  //     });
+
+  //     return resultado;
+  //   } catch (error) {
+  //     logger.error(
+  //       `[MedicAgendamentoQueryService] Erro ao buscar medicamentos do dia para usuário ${usuarioId}: ${String(error)}`,
+  //     );
+  //     throw error;
+  //   }
+  // }
   // Buscar medicamentos do dia filtrado por usuário
   async getMedicamentosDoDia(usuarioId: string) {
     try {
@@ -130,12 +248,25 @@ export class MedicAgendamentoQueryService {
       const fim = new Date(hoje);
       fim.setHours(23, 59, 59, 999);
 
-      console.log(inicio, fim);
-      // 1. pegar dispositivos do usuário (SEM JOIN profundo)
+      // DOMINGO -> SABADO
+      const diasSemana = [
+        "DOMINGO",
+        "SEGUNDA",
+        "TERCA",
+        "QUARTA",
+        "QUINTA",
+        "SEXTA",
+        "SABADO",
+      ] as const;
+
+      const diaSemana = diasSemana[hoje.getDay()];
+
+      // 1. buscar dispositivos do usuário
       const dispositivos = await prisma.usuarioDispositivo.findMany({
         where: {
           usuario_id: usuarioId,
         },
+
         select: {
           dispositivo_id: true,
         },
@@ -143,24 +274,23 @@ export class MedicAgendamentoQueryService {
 
       const dispositivosIds = dispositivos.map((d) => d.dispositivo_id);
 
-      // se não tiver dispositivo, retorna vazio
+      // sem dispositivos
       if (dispositivosIds.length === 0) {
         return [];
       }
 
-      const diaSemana = hoje.getDay() + 1;
-      // 2. buscar agendamentos de forma simples e segura
+      // 2. buscar agendamentos
       const agendamentos = await prisma.agendamento.findMany({
         where: {
           compartimento: {
             dispositivo_id: {
               in: dispositivosIds,
             },
-            posicao: {
-              equals: diaSemana,
-            },
+
+            dia_semana: diaSemana,
           },
         },
+
         include: {
           medicamento: {
             select: {
@@ -175,6 +305,7 @@ export class MedicAgendamentoQueryService {
               id: true,
               dispositivo_id: true,
               posicao: true,
+              dia_semana: true,
             },
           },
 
@@ -187,8 +318,13 @@ export class MedicAgendamentoQueryService {
                     lte: fim,
                   },
                 },
+
+                orderBy: {
+                  horario_programado: "asc",
+                },
               },
             },
+
             orderBy: {
               horario: "asc",
             },
@@ -203,8 +339,18 @@ export class MedicAgendamentoQueryService {
 
           medicamento: {
             id: agendamento.medicamento.id,
+
             nome: agendamento.medicamento.nome,
+
             dosagem: agendamento.medicamento.dosagem,
+          },
+
+          compartimento: {
+            id: agendamento.compartimento.id,
+
+            posicao: agendamento.compartimento.posicao,
+
+            dia_semana: agendamento.compartimento.dia_semana,
           },
 
           horarios: agendamento.horarios.map((h) => {
@@ -213,20 +359,35 @@ export class MedicAgendamentoQueryService {
             let status: "PENDENTE" | "RETIRADO" | "ATRASADO" | "NAO_RETIRADO" =
               retirada?.status ?? "PENDENTE";
 
-            const agora = new Date();
+            // converter TIME para horário de hoje
+            const horarioTexto = h.horario.toISOString().substring(11, 16);
 
-            if (!retirada && new Date(h.horario) < agora) {
+            const [hora, minuto] = horarioTexto.split(":").map(Number);
+
+            const horarioHoje = new Date();
+
+            horarioHoje.setHours(hora, minuto, 0, 0);
+
+            // atraso automático
+            if (!retirada && horarioHoje < hoje) {
               status = "ATRASADO";
             }
 
             return {
               id: h.id,
-              horario: h.horario.toISOString().substring(11, 16),
+
+              horario: horarioTexto,
+
               status,
+
               horario_retirada: retirada?.horario_retirada ?? null,
             };
           }),
         };
+      });
+
+      console.dir(resultado, {
+        depth: null,
       });
 
       return resultado;
@@ -234,6 +395,7 @@ export class MedicAgendamentoQueryService {
       logger.error(
         `[MedicAgendamentoQueryService] Erro ao buscar medicamentos do dia para usuário ${usuarioId}: ${String(error)}`,
       );
+
       throw error;
     }
   }

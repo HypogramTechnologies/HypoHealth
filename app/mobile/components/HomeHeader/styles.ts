@@ -8,7 +8,7 @@ export const styles = (theme: ThemeType) =>
       backgroundColor: theme.colors.primary,
 
       paddingHorizontal: 22,
-      paddingTop: 60,
+      paddingTop: 20,
       paddingBottom: 24,
 
       borderBottomLeftRadius: 34,
@@ -61,7 +61,7 @@ export const styles = (theme: ThemeType) =>
     },
 
     accountBadgeText: {
-      color: theme.colors.text,
+      color: "#FFF",
 
       fontSize: 13,
 
@@ -71,7 +71,7 @@ export const styles = (theme: ThemeType) =>
     },
 
     greeting: {
-      color: theme.colors.text,
+      color: "#FFF",
 
       fontSize: 18,
 
@@ -79,7 +79,7 @@ export const styles = (theme: ThemeType) =>
     },
 
     name: {
-      color: theme.colors.text,
+      color: "#FFF",
 
       fontSize: 38,
 
@@ -94,7 +94,7 @@ export const styles = (theme: ThemeType) =>
 
       borderRadius: 33,
 
-      backgroundColor: theme.colors.text,
+      backgroundColor: "#FFF",
 
       justifyContent: 'center',
       alignItems: 'center',
@@ -140,13 +140,13 @@ export const styles = (theme: ThemeType) =>
 
       borderRadius: 24,
 
-      padding: 18,
+      padding: 10,
 
       flexDirection: 'row',
 
       alignItems: 'center',
 
-      marginBottom: 18,
+      marginTop: 10,
 
       shadowColor: '#000',
 
@@ -162,12 +162,12 @@ export const styles = (theme: ThemeType) =>
     },
 
     careAvatar: {
-      width: 68,
-      height: 68,
+      width: 50,
+      height: 50,
 
       borderRadius: 34,
 
-      backgroundColor: theme.colors.text,
+      backgroundColor: "#FFF",
 
       justifyContent: 'center',
       alignItems: 'center',
@@ -202,7 +202,7 @@ export const styles = (theme: ThemeType) =>
       alignItems: 'center',
 
       borderWidth: 3,
-      borderColor: theme.colors.text,
+      borderColor: "#FFF",
     },
 
     careLabelRow: {
@@ -214,7 +214,7 @@ export const styles = (theme: ThemeType) =>
     },
 
     careLabel: {
-      color: theme.colors.text,
+      color: "#FFF",
 
       fontSize: 13,
 
@@ -226,9 +226,9 @@ export const styles = (theme: ThemeType) =>
     },
 
     careName: {
-      color: theme.colors.text,
+      color: "#FFF",
 
-      fontSize: 34,
+      fontSize: 28,
 
       fontWeight: '800',
 
@@ -241,7 +241,7 @@ export const styles = (theme: ThemeType) =>
 
       borderRadius: 20,
 
-      padding: 18,
+      padding: 14,
 
       flexDirection: 'row',
 

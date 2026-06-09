@@ -8,4 +8,10 @@ router.post("/", (req: Request, res: Response) =>
   medicAgendamentoController.createSimultaneo(req, res),
 );
 
+router.put("/:id", (req, res) =>
+  medicAgendamentoController.updateSimultaneo(req, res),
+);
+
+router.get("/:id", (req, res) => medicAgendamentoController.getById(req, res));
+
 export default router;

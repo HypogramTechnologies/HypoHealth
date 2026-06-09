@@ -1,80 +1,133 @@
-import React, { useState } from "react";
-import { View, ScrollView } from "react-native";
-import { useRoute } from "@react-navigation/native";
+import React from "react";
+import { useRoute, useNavigation } from "@react-navigation/native";
 import type { RouteProp } from "@react-navigation/native";
+import { Controller } from "react-hook-form";
 
 import { Form } from "../../../components/Form/Form";
 import { InputField } from "../../../components/Form/InputField";
-import { SubmitButton } from "../../../components/Form/SubmitButton";
+import { ActionButton } from "@/mobile/components/MedicamentoForm/ActionButton";
+import { RootStackParamList } from "../../../navigation/types";
 import { useMensagem } from "../../../hooks/Outros/useMensagem";
 import { useResponsavel } from "../../../hooks/Responsavel/useResponsavel";
-import { useAuth } from "../../../hooks/Auth/useAuth";
-import { RootStackParamList } from "../../../navigation/types";
 import { TypeMessage } from "@/mobile/types/Outros/messageType";
+import { ResponsavelDetalhado as ResponsavelType } from "@/mobile/types/Cadastros/responsavel";
+
+// Definindo explicitamente o que a rota pode receber localmente para evitar erros de tipagem
+type ResponsavelFormRouteProp = RouteProp<RootStackParamList, "ResponsavelForm"> & {
+  params: {
+    mode?: "create" | "view" | "edit";
+    responsavelId?: string;
+    responsavel?: ResponsavelType; // Adicionado de forma estendida aqui
+  };
+};
 
 export function ResponsavelForm() {
-  const route = useRoute<RouteProp<RootStackParamList, "ResponsavelForm">>();
-  const { mode } = route.params || { mode: "create" };
-  const { usuario } = useAuth();
+  const navigation = useNavigation();
+  const route = useRoute<ResponsavelFormRouteProp>();
   const showMessage = useMensagem();
-  const { adicionarResponsavel, carregando } = useResponsavel();
 
-  const [nome, setNome] = useState("");
-  const [email, setEmail] = useState("");
+  const { mode = "create", responsavel } = route.params || {};
 
-  const handleSubmit = async () => {
-    if (!nome || !email) {
-      showMessage("Preencha todos os campos.", TypeMessage.error);
-      return;
-    }
+  const {
+    control,
+    errors,
+    secure,
+    setSecure,
+    secureConfirm,
+    setSecureConfirm,
+    submit,
+  } = useResponsavel({
+    mode,
+    responsavel,
+  });
 
-    if (!usuario?.dispositivos?.[0]?.id) {
-      showMessage("Nenhum dispositivo associado.", TypeMessage.error);
-      return;
-    }
-
+  async function handleForm() {
     try {
-      await adicionarResponsavel(usuario.dispositivos[0].id, email);
-      showMessage("Responsável adicionado com sucesso.", TypeMessage.success);
-    } catch (error) {
-      showMessage("Erro ao adicionar responsável.", TypeMessage.error);
-    }
-  };
+      const success = await submit();
 
-  if (mode === "view") {
-    return (
-      <View style={{ flex: 1 }}>
-        <Form title="Detalhes do Responsável">
-          <View />
-        </Form>
-      </View>
-    );
+      if (success) {
+        showMessage(
+          mode === "create"
+            ? "Responsável criado com sucesso!"
+            : "Responsável atualizado com sucesso!",
+          TypeMessage.success
+        );
+
+        navigation.goBack();
+      }
+    } catch (error: any) {
+      showMessage(
+        error.message || "Erro ao salvar responsável",
+        TypeMessage.error
+      );
+    }
   }
 
   return (
-    <ScrollView style={{ flex: 1 }}>
-      <Form title="Adicionar Responsável">
-        <InputField
-          label="Nome do Responsável"
-          value={nome}
-          onChangeText={setNome}
-          placeholder="Ex: João Silva"
-        />
+    <Form>
+      <Controller
+        control={control}
+        name="nome"
+        render={({ field }) => (
+          <InputField
+            label="Nome"
+            value={field.value}
+            onChangeText={field.onChange}
+            error={errors.nome?.message}
+          />
+        )}
+      />
 
-        <InputField
-          label="Email"
-          value={email}
-          onChangeText={setEmail}
-          placeholder="Ex: joao@email.com"
-          keyboardType="email-address"
-        />
+      <Controller
+        control={control}
+        name="email"
+        render={({ field }) => (
+          <InputField
+            label="E-mail"
+            value={field.value}
+            onChangeText={field.onChange}
+            error={errors.email?.message}
+          />
+        )}
+      />
 
-        <SubmitButton
-          label="Adicionar Responsável"
-          onPress={handleSubmit}
-          loading={carregando}
-        />
-      </Form>
-    </ScrollView>
+      <Controller
+        control={control}
+        name="senha"
+        render={({ field }) => (
+          <InputField
+            label="Senha"
+            value={field.value}
+            onChangeText={field.onChange}
+            secureTextEntry={secure}
+            rightIcon={secure ? "eye-off" : "eye"}
+            onRightIconPress={() => setSecure(!secure)}
+            error={errors.senha?.message}
+          />
+        )}
+      />
+
+      <Controller
+        control={control}
+        name="confirmarSenha"
+        render={({ field }) => (
+          <InputField
+            label="Confirmar senha"
+            value={field.value}
+            onChangeText={field.onChange}
+            secureTextEntry={secureConfirm}
+            rightIcon={secureConfirm ? "eye-off" : "eye"}
+            onRightIconPress={() => setSecureConfirm(!secureConfirm)}
+            error={errors.confirmarSenha?.message}
+          />
+        )}
+      />
+
+      <ActionButton
+        title={mode === "create" ? "Salvar" : "Atualizar"}
+        icon="save-outline"
+        onPress={handleForm}
+      />
+    </Form>
   );
 }

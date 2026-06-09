@@ -1,5 +1,16 @@
 import { z } from 'zod';
 
+const horarioSchema = z.string().refine(
+  (valor) => {
+    const regex = /^([01]\d|2[0-3]):([0-5]\d)$/;
+
+    return regex.test(valor);
+  },
+  {
+    message: 'Horário inválido.',
+  },
+);
+
 export const medicamentoSchema = z.object({
   medicamentoNome: z
     .string()
@@ -9,26 +20,39 @@ export const medicamentoSchema = z.object({
     .string()
     .min(1, 'Dosagem obrigatória'),
 
+  data_inicio: z.date(),
+
+  data_fim: z
+    .date()
+    .nullable()
+    .optional(),
+
   medicamentoDescricao: z
     .string()
     .min(2, 'Descrição obrigatória'),
 
   compartimentos: z
     .array(z.string())
-    .min(1, 'Selecione ao menos um compartimento'),
+    .min(
+      1,
+      'Selecione ao menos um compartimento',
+    ),
 
   tipo: z.enum([
     'HORARIO_FIXO',
     'INTERVALO',
   ]),
 
-  intervalo_horas: z.number().optional(),
+  intervalo_horas: z
+    .number()
+    .optional(),
 
   horarios: z
-    .array(
-      z.string().min(1, 'Horário obrigatório'),
-    )
-    .min(1, 'Adicione pelo menos um horário'),
+    .array(horarioSchema)
+    .min(
+      1,
+      'Adicione pelo menos um horário',
+    ),
 });
 
 export type MedicamentoFormData =

@@ -7,12 +7,18 @@ import {
   useEffect,
 } from 'react';
 
+import {
+  useFocusEffect,
+} from '@react-navigation/native';
+
 import { MedicamentoService } from '../../services/medicamentoService';
 
 import {
   MedicamentoFiltro,
   MedicamentoDetalhado,
 } from '../../types/Cadastros/medicamento';
+
+import { useAuth } from '../Auth/useAuth';
 
 type UseCarteiraError = {
   message: string;
@@ -23,6 +29,8 @@ export function useCarteira() {
   const [dados, setDados] = useState<
     MedicamentoDetalhado[]
   >([]);
+
+  const { usuario } = useAuth();
 
   const [loadingBusca, setLoadingBusca] =
     useState(false);
@@ -58,11 +66,22 @@ export function useCarteira() {
       async (
         filtros?: MedicamentoFiltro,
       ) => {
+        filtros = {
+          ...filtros,
+
+          usuario_id:
+            usuario?.usuario_proprietario_id,
+        };
+        console.log(
+          'Buscando carteira com filtros:',
+          filtros,
+        );
         const requestId =
           ++requestIdRef.current;
 
         safeSetState(() => {
           setLoadingBusca(true);
+
           setError(null);
         });
 
@@ -117,7 +136,9 @@ export function useCarteira() {
           }
         }
       },
-      [],
+      [
+        usuario?.usuario_proprietario_id,
+      ],
     );
 
   const deleteMedicamento =
@@ -127,6 +148,7 @@ export function useCarteira() {
       ) => {
         safeSetState(() => {
           setLoadingDelete(true);
+
           setError(null);
         });
 
@@ -171,6 +193,14 @@ export function useCarteira() {
       },
       [],
     );
+
+  useFocusEffect(
+    useCallback(() => {
+      buscarCarteira();
+
+      return () => {};
+    }, [buscarCarteira]),
+  );
 
   return {
     dados,

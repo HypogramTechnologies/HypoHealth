@@ -21,59 +21,38 @@ import { useScreenMode } from "../Outros/useScreenMode";
 
 import { useAuth } from "../Auth/useAuth";
 
-export function useMedicamentoForm(
-  mode: Mode,
-  medicamentoId?: string,
-) {
-  console.log(
-    "HOOK useMedicamentoForm INICIADO",
-  );
-
-  console.log("MODE:", mode);
-
-  console.log(
-    "MEDICAMENTO ID:",
-    medicamentoId,
-  );
-
+export function useMedicamentoForm(mode: Mode, medicamentoId?: string) {
   const screen = useScreenMode(mode);
-
   const { usuario } = useAuth();
 
-  console.log("USUARIO:", usuario);
+  const { isCreate, setLoading } = screen;
 
-  const {
-    isCreate,
-    setLoading,
-  } = screen;
+  const [compartimentosDisponiveis, setCompartimentosDisponiveis] = useState<
+    Compartimento[]
+  >([]);
 
-  const [
-    compartimentosDisponiveis,
-    setCompartimentosDisponiveis,
-  ] = useState<Compartimento[]>([]);
+  const form = useForm<MedicamentoFormData>({
+    resolver: zodResolver(medicamentoSchema),
 
-  const form =
-    useForm<MedicamentoFormData>({
-      resolver: zodResolver(
-        medicamentoSchema,
-      ),
+    defaultValues: {
+      medicamentoNome: "",
 
-      defaultValues: {
-        medicamentoNome: "",
+      medicamentoDosagem: "",
 
-        medicamentoDosagem: "",
+      medicamentoDescricao: "",
 
-        medicamentoDescricao: "",
+      compartimentos: [],
 
-        compartimentos: [],
+      tipo: "HORARIO_FIXO",
 
-        tipo: "HORARIO_FIXO",
+      intervalo_horas: 8,
 
-        intervalo_horas: 8,
+      horarios: ["08:00"],
 
-        horarios: ["08:00"],
-      },
-    });
+      data_inicio: new Date(),
+      data_fim: undefined,
+    },
+  });
 
   const {
     control,
@@ -87,428 +66,251 @@ export function useMedicamentoForm(
 
   const tipo = watch("tipo");
 
-  const compartimentos =
-    watch("compartimentos");
+  const compartimentos = watch("compartimentos");
 
-  const intervalo = watch(
-    "intervalo_horas",
-  );
+  const intervalo = watch("intervalo_horas");
 
   const horarios = watch("horarios");
 
-  console.log("TIPO:", tipo);
+  const hasHorariosDuplicados = (horarios: string[]) => {
+    const set = new Set(horarios);
+    return set.size !== horarios.length;
+  };
 
-  console.log(
-    "COMPARTIMENTOS:",
-    compartimentos,
-  );
+  const toggleCompartimento = (id: string | number) => {
+    const compartimentoId = String(id);
 
-  console.log("HORARIOS:", horarios);
-
-  const toggleCompartimento = (
-    id: string | number,
-  ) => {
-    console.log(
-      "TOGGLE COMPARTIMENTO:",
-      id,
-    );
-
-    const compartimentoId =
-      String(id);
-
-    const lista =
-      compartimentos || [];
+    const lista = compartimentos || [];
 
     setValue(
       "compartimentos",
 
-      lista.includes(
-        compartimentoId,
-      )
-        ? lista.filter(
-            x =>
-              x !==
-              compartimentoId,
-          )
-        : [
-            ...lista,
-            compartimentoId,
-          ],
+      lista.includes(compartimentoId)
+        ? lista.filter((x) => x !== compartimentoId)
+        : [...lista, compartimentoId],
     );
   };
 
-  const addHorario = (
-    horario = "08:00",
-  ) => {
-    console.log(
-      "ADICIONANDO HORARIO:",
-      horario,
-    );
-
-    setValue("horarios", [
-      ...horarios,
-      horario,
-    ]);
+  const addHorario = (horario = "08:00") => {
+    setValue("horarios", [...horarios, horario]);
   };
 
-  const removeHorario = (
-    index: number,
-  ) => {
-    console.log(
-      "REMOVENDO HORARIO:",
-      index,
-    );
-
+  const removeHorario = (index: number) => {
     setValue(
       "horarios",
 
-      horarios.filter(
-        (_, i) => i !== index,
-      ),
+      horarios.filter((_, i) => i !== index),
     );
   };
 
-  const updateHorario = (
-    index: number,
-    value: string,
-  ) => {
-    console.log(
-      "ATUALIZANDO HORARIO:",
-      {
-        index,
-        value,
-      },
-    );
+  const somarHoras = (horario: string, horas: number) => {
+    const [h, m] = horario.split(":").map(Number);
 
+    const minutosIniciais = h * 60 + m;
+
+    const minutosSomados = minutosIniciais + horas * 60;
+
+    // corrige negativos
+    const minutosDia = ((minutosSomados % (24 * 60)) + 24 * 60) % (24 * 60);
+
+    const novaHora = Math.floor(minutosDia / 60);
+
+    const novoMinuto = minutosDia % 60;
+
+    return `${String(novaHora).padStart(2, "0")}:${String(novoMinuto).padStart(
+      2,
+      "0",
+    )}`;
+  };
+
+  const gerarHorarios = (inicio = "08:00", intervaloHoras = 8) => {
+    const quantidade = Math.floor(24 / intervaloHoras);
+
+    const lista: string[] = [];
+
+    for (let i = 0; i < quantidade; i++) {
+      lista.push(somarHoras(inicio, i * intervaloHoras));
+    }
+
+    return lista;
+  };
+
+  const horarioCompleto = (value: string) => {
+    return /^\d{2}:\d{2}$/.test(value);
+  };
+
+  const updateHorario = (index: number, value: string) => {
+    // sempre atualiza visualmente o campo
     const novaLista = [...horarios];
 
     novaLista[index] = value;
 
-    setValue(
-      "horarios",
-      novaLista,
-    );
-  };
+    setValue("horarios", novaLista);
 
-  const gerarHorarios = (
-    inicio = "08:00",
-    h = 8,
-  ) => {
-    console.log(
-      "GERANDO HORARIOS:",
-      {
-        inicio,
-        h,
-      },
-    );
-
-    const [hora, min] = inicio
-      .split(":")
-      .map(Number);
-
-    const total = Math.floor(
-      24 / h,
-    );
-
-    const lista: string[] = [];
-
-    for (
-      let i = 0;
-      i < total;
-      i++
-    ) {
-      const nova =
-        (hora + i * h) % 24;
-
-      lista.push(
-        `${String(nova).padStart(2, "0")}:${String(min).padStart(2, "0")}`,
-      );
+    // HORARIO FIXO
+    if (tipo === "HORARIO_FIXO") {
+      return;
     }
 
-    console.log(
-      "HORARIOS GERADOS:",
-      lista,
-    );
+    // ainda não terminou de digitar
+    if (!horarioCompleto(value)) {
+      return;
+    }
 
-    setValue("horarios", lista);
+    // INTERVALO
+    const intervaloAtual = intervalo || 8;
+
+    const quantidade = Math.floor(24 / intervaloAtual);
+
+    const novaListaIntervalo: string[] = [];
+
+    for (let i = 0; i < quantidade; i++) {
+      const diferenca = i - index;
+
+      novaListaIntervalo.push(somarHoras(value, diferenca * intervaloAtual));
+    }
+
+    setValue("horarios", novaListaIntervalo);
   };
 
   useEffect(() => {
-    console.log(
-      "EFFECT TIPO/INTERVALO",
-    );
-
-    if (tipo === "INTERVALO") {
-      gerarHorarios(
-        horarios[0] || "08:00",
-        intervalo,
-      );
+    if (tipo !== "INTERVALO") {
+      return;
     }
+
+    const primeiroHorario = horarios[0] || "08:00";
+
+    const novaLista = gerarHorarios(primeiroHorario, intervalo);
+
+    setValue("horarios", novaLista);
   }, [tipo, intervalo]);
 
-  const save = async (
-  data: MedicamentoFormData,
-) => {
-  setLoading(true);
+  type SaveResult = {
+    success: boolean;
+    message: string;
+  };
 
-  try {
-    const primeiroHorario =
-      data.horarios[0];
+  const save = async (data: MedicamentoFormData): Promise<SaveResult> => {
+    setLoading(true);
 
-    if (mode === "create") {
-      for (const compartimentoId of data.compartimentos) {
-
-        const payload = {
-          nome:
-            data.medicamentoNome,
-
-          dosagem:
-            data.medicamentoDosagem,
-
-          descricao:
-            data.medicamentoDescricao,
-
-          compartimento_id:
-            compartimentoId,
-
-          tipo: data.tipo,
-
-          data_inicio:
-            new Date().toISOString(),
-
-          intervalo_horas:
-            data.intervalo_horas,
-
-          horario:
-            data.tipo ===
-            "INTERVALO"
-              ? primeiroHorario
-              : undefined,
-
-          horarios:
-            data.tipo ===
-            "HORARIO_FIXO"
-              ? data.horarios
-              : undefined,
+    try {
+      if (hasHorariosDuplicados(data.horarios)) {
+        return {
+          success: false,
+          message: "Não é possível salvar horários duplicados.",
         };
-
-        console.log(
-          "BODY POST:",
-          payload,
-        );
-
-        await MedicamentoService.create(
-          payload,
-        );
       }
-    } else if (medicamentoId) {
 
       const payload = {
-        nome:
-          data.medicamentoNome,
-
-        dosagem:
-          data.medicamentoDosagem,
-
-        descricao:
-          data.medicamentoDescricao,
-
+        nome: data.medicamentoNome,
+        dosagem: data.medicamentoDosagem,
+        descricao: data.medicamentoDescricao,
+        usuario_id: usuario?.usuario_proprietario_id,
+        compartimento_ids: data.compartimentos,
         tipo: data.tipo,
-
-        intervalo_horas:
-          data.intervalo_horas,
-
-        horario:
-          data.tipo ===
-          "INTERVALO"
-            ? primeiroHorario
-            : undefined,
-
-        horarios:
-          data.tipo ===
-          "HORARIO_FIXO"
-            ? data.horarios
-            : undefined,
+        data_inicio: data.data_inicio.toISOString(),
+        data_fim: data.data_fim?.toISOString(),
+        intervalo_horas: data.intervalo_horas,
+        horarios: data.horarios,
       };
 
-      console.log(
-        "BODY UPDATE:",
-        payload,
-      );
+      if (mode === "create") {
+        await MedicamentoService.create(payload);
+      } else if (medicamentoId) {
+        await MedicamentoService.update(medicamentoId, payload);
+      }
 
-      await MedicamentoService.update(
-        medicamentoId,
-        payload,
-      );
+      return {
+        success: true,
+        message:
+          mode === "create"
+            ? "Medicamento criado com sucesso!"
+            : "Medicamento atualizado com sucesso!",
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        message: error?.response?.data?.message || "Erro ao salvar medicamento",
+      };
+    } finally {
+      setLoading(false);
     }
-
-    return true;
-  } catch {
-    return false;
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   useEffect(() => {
-    const carregarCompartimentos =
-      async () => {
-        try {
-          console.log(
-            "CARREGANDO COMPARTIMENTOS",
-          );
+    const carregarCompartimentos = async () => {
+      try {
+        const dispositivoId = usuario?.dispositivos?.[0]?.id;
 
-          const dispositivoId =
-            usuario?.dispositivos?.[0]
-              ?.id;
-
-          console.log(
-            "DISPOSITIVO ID:",
-            dispositivoId,
-          );
-
-          if (!dispositivoId) {
-            console.log(
-              "DISPOSITIVO ID NÃO ENCONTRADO",
-            );
-
-            return;
-          }
-
-          const dados =
-            await CompartimentoService.getByDispositivo(
-              dispositivoId,
-            );
-
-          console.log(
-            "COMPARTIMENTOS RECEBIDOS:",
-            dados,
-          );
-
-          setCompartimentosDisponiveis(
-            dados,
-          );
-        } catch (error) {
-          console.log(
-            "ERRO AO CARREGAR COMPARTIMENTOS:",
-            error,
-          );
+        if (!dispositivoId) {
+          return;
         }
-      };
+
+        const dados =
+          await CompartimentoService.getByDispositivo(dispositivoId);
+
+        setCompartimentosDisponiveis(dados);
+      } catch (error) {
+        console.error("Erro ao carregar compartimentos:", error);
+      }
+    };
 
     carregarCompartimentos();
   }, [usuario]);
 
   useEffect(() => {
-    const carregarMedicamento =
-      async () => {
-        console.log(
-          "INICIANDO CARREGAMENTO MEDICAMENTO",
+    const carregarMedicamento = async () => {
+      if (!medicamentoId || isCreate) {
+        return;
+      }
+
+      try {
+        setLoading(true);
+
+        const medicamento = await MedicamentoService.getById(medicamentoId);
+
+        const resetData = {
+          medicamentoNome: medicamento.nome,
+
+          medicamentoDosagem: medicamento.dosagem,
+
+          medicamentoDescricao: medicamento.descricao,
+
+          compartimentos: medicamento.compartimento_ids
+            ? [...medicamento.compartimento_ids]
+            : [],
+
+          tipo: medicamento.tipo,
+
+          intervalo_horas: medicamento.intervalo_horas || 8,
+
+          horarios: medicamento.horarios?.length
+            ? medicamento.horarios
+            : medicamento.horario
+              ? [medicamento.horario]
+              : ["08:00"],
+
+          data_inicio: medicamento.data_inicio
+            ? new Date(medicamento.data_inicio)
+            : new Date(),
+
+          data_fim: medicamento.data_fim
+            ? new Date(medicamento.data_fim)
+            : undefined,
+        };
+
+        reset(resetData);
+      } catch (error) {
+        console.error(
+          `[useMedicamentoForm] Erro ao carregar medicamento: ${String(error)}`,
         );
-
-        console.log(
-          "IS CREATE:",
-          isCreate,
-        );
-
-        console.log(
-          "MEDICAMENTO ID:",
-          medicamentoId,
-        );
-
-        if (
-          !medicamentoId ||
-          isCreate
-        ) {
-          console.log(
-            "NÃO VAI CARREGAR MEDICAMENTO",
-          );
-
-          return;
-        }
-
-        try {
-          setLoading(true);
-
-          console.log(
-            "BUSCANDO MEDICAMENTO...",
-          );
-
-          const medicamento =
-            await MedicamentoService.getById(
-              medicamentoId,
-            );
-
-          console.log(
-            "MEDICAMENTO RECEBIDO:",
-            medicamento,
-          );
-
-          const resetData = {
-            medicamentoNome:
-              medicamento.nome,
-
-            medicamentoDosagem:
-              medicamento.dosagem,
-
-            medicamentoDescricao:
-              medicamento.descricao,
-
-            compartimentos:
-              medicamento.compartimento_id
-                ? [
-                    medicamento.compartimento_id,
-                  ]
-                : [],
-
-            tipo: medicamento.tipo,
-
-            intervalo_horas:
-              medicamento.intervalo_horas ||
-              8,
-
-            horarios:
-              medicamento.horarios
-                ?.length
-                ? medicamento.horarios
-                : medicamento.horario
-                  ? [
-                      medicamento.horario,
-                    ]
-                  : ["08:00"],
-          };
-
-          console.log(
-            "RESET DATA:",
-            resetData,
-          );
-
-          reset(resetData);
-
-          console.log(
-            "FORM RESETADO",
-          );
-        } catch (error) {
-          console.log(
-            "ERRO AO CARREGAR MEDICAMENTO:",
-            error,
-          );
-        } finally {
-          console.log(
-            "FINALIZANDO LOADING GET",
-          );
-
-          setLoading(false);
-        }
-      };
+      } finally {
+        setLoading(false);
+      }
+    };
 
     carregarMedicamento();
-  }, [
-    medicamentoId,
-    isCreate,
-    reset,
-    setLoading,
-  ]);
+  }, [medicamentoId, isCreate, reset, setLoading]);
 
   return {
     control,

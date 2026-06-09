@@ -5,7 +5,7 @@ import routes from "./routes/index";
 
 import mqttService from "./services/MqttService";
 import agendadorCronService from "./services/AgendadorCronService";
-import { MedicationIntakeService } from "./services/MedicationIntakeService";
+import { RetiradaMedicamentoService } from "./services/RetiradaMedicamentoService";
 import { IMqttEvent } from "./types/IMqtt";
 import { logger } from "./utils/logger";
 
@@ -16,7 +16,7 @@ app.use(cors());
 app.use(express.json());
 app.use("/api", routes);
 
-const medicationIntakeService = new MedicationIntakeService();
+const retiradaMedicamentoService = new RetiradaMedicamentoService();
 
 const start = async () => {
   try {
@@ -25,7 +25,7 @@ const start = async () => {
     mqttService.connect();
 
     mqttService.onEventReceived(async (mac: string, payload: IMqttEvent) => {
-      await medicationIntakeService.processarRetirada(payload, mac);
+      await retiradaMedicamentoService.processarRetirada(payload, mac);
     });
 
     agendadorCronService.iniciar();

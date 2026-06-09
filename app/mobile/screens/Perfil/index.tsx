@@ -1,5 +1,3 @@
-// src/screens/Perfil/index.tsx
-
 import {
   View,
   Text,
@@ -21,12 +19,12 @@ import { useUsuario } from '../../hooks/Usuario/useUsuario';
 import { useAuth } from '../../hooks/Auth/useAuth';
 
 export function Perfil() {
-  const { theme } = useTheme();
+  // Puxando o tema ativo e a função para alterná-lo
+  const { theme, toggleTheme } = useTheme();
 
   const profileStyles = styles(theme);
 
-  const { usuario, loading, error } =
-    useUsuario();
+  const { usuario, loading, error } = useUsuario();
 
   const { logout } = useAuth();
 
@@ -126,6 +124,7 @@ export function Perfil() {
           </Text>
         </View>
 
+        {/* Card de E-mail */}
         <View style={profileStyles.card}>
           <Ionicons
             name="mail-outline"
@@ -143,6 +142,29 @@ export function Perfil() {
             </Text>
           </View>
         </View>
+
+        {/* NOVO: Card de Alternar Tema */}
+        <TouchableOpacity 
+          style={profileStyles.card} 
+          onPress={toggleTheme}
+          activeOpacity={0.7}
+        >
+          <Ionicons
+            name={theme.mode === 'dark' ? "sunny-outline" : "moon-outline"}
+            size={22}
+            color={theme.colors.primary}
+          />
+
+          <View style={profileStyles.infoContent}>
+            <Text style={profileStyles.label}>
+              Aparência
+            </Text>
+
+            <Text style={profileStyles.value}>
+              Mudar para Tema {theme.mode === 'dark' ? 'Claro' : 'Escuro'}
+            </Text>
+          </View>
+        </TouchableOpacity>
 
         <Menu
           profileStyles={profileStyles}
@@ -182,17 +204,9 @@ export function Perfil() {
                           .responsavelNome
                       }
                     >
-                      {dispositivo.tipo}
+                      {dispositivo.nome}
                     </Text>
 
-                    <Text
-                      style={
-                        profileStyles
-                          .responsavelTelefone
-                      }
-                    >
-                      ID: {dispositivo.id}
-                    </Text>
                   </View>
                 </View>
               )

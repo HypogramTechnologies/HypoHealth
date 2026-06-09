@@ -34,6 +34,7 @@ export function FormError({ message }: Props) {
           lineHeight: 16,
         }}
       >
+        
         {message}
       </Text>
     </View>

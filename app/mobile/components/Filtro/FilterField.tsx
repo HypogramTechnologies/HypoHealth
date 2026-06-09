@@ -1,7 +1,11 @@
 import { View, Text, TextInput } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
+
 import { FilterFieldConfig } from './types';
+
 import { InputField } from '../Form/InputField';
 import { InputCombo } from '../Form/InputCombo';
+
 import { useComboOptions } from '../../hooks/Combo/useComboOptions';
 
 interface Props {
@@ -10,9 +14,15 @@ interface Props {
   onChange: (value: any) => void;
 }
 
-
-export function FilterField({ field, value, onChange }: Props) {
-  const { options, loading } = useComboOptions(field.source ?? undefined);
+export function FilterField({
+  field,
+  value,
+  onChange,
+}: Props) {
+  const { options, loading } =
+    useComboOptions(
+      field.source ?? undefined,
+    );
 
   switch (field.type) {
     case 'text':
@@ -21,9 +31,13 @@ export function FilterField({ field, value, onChange }: Props) {
           <InputField
             icon={field.icon}
             label={field.label}
-            placeholder={field.placeholder}
+            placeholder={
+              field.placeholder
+            }
             value={value ?? ''}
-            onChangeText={text => onChange(text)}
+            onChangeText={(text) =>
+              onChange(text)
+            }
             keyboardType="default"
           />
         </View>
@@ -35,11 +49,13 @@ export function FilterField({ field, value, onChange }: Props) {
           <InputField
             label={field.label}
             icon={field.icon}
-            placeholder={field.placeholder}
+            placeholder={
+              field.placeholder
+            }
             keyboardType="numeric"
             value={value ?? ''}
             onChangeText={(v) => {
-              onChange(v); 
+              onChange(v);
             }}
           />
         </View>
@@ -52,12 +68,15 @@ export function FilterField({ field, value, onChange }: Props) {
             label={field.label}
             icon={field.icon}
             value={value ?? ''}
-            onChange={v => onChange(v)}
+            onChange={(v) =>
+              onChange(v)
+            }
             options={options}
             loading={loading}
           />
         </View>
       );
+
     case 'boolean':
       return (
         <View>
@@ -73,15 +92,31 @@ export function FilterField({ field, value, onChange }: Props) {
                 ? 'all'
                 : undefined
             }
-            onChange={v => {
-              if (v === 'all') onChange('all');
-              else if (v === 'true') onChange(true);
-              else if (v === 'false') onChange(false);
+            onChange={(v) => {
+              if (v === 'all')
+                onChange('all');
+              else if (
+                v === 'true'
+              )
+                onChange(true);
+              else if (
+                v === 'false'
+              )
+                onChange(false);
             }}
             options={[
-              { label: 'Todos', value: 'all' },
-              { label: 'Sim', value: 'true' },
-              { label: 'Não', value: 'false' },
+              {
+                label: 'Todos',
+                value: 'all',
+              },
+              {
+                label: 'Sim',
+                value: 'true',
+              },
+              {
+                label: 'Não',
+                value: 'false',
+              },
             ]}
             loading={false}
           />
@@ -92,18 +127,88 @@ export function FilterField({ field, value, onChange }: Props) {
       return (
         <View>
           <Text>{field.label}</Text>
-          <View style={{ flexDirection: 'row', gap: 8 }}>
+
+          <View
+            style={{
+              flexDirection: 'row',
+              gap: 8,
+            }}
+          >
             <TextInput
               placeholder="Mínimo"
               keyboardType="numeric"
-              onChangeText={v => onChange({ ...value, min: Number(v) })}
+              onChangeText={(v) =>
+                onChange({
+                  ...value,
+                  min: Number(v),
+                })
+              }
             />
+
             <TextInput
               placeholder="Máximo"
               keyboardType="numeric"
-              onChangeText={v => onChange({ ...value, max: Number(v) })}
+              onChangeText={(v) =>
+                onChange({
+                  ...value,
+                  max: Number(v),
+                })
+              }
             />
           </View>
+        </View>
+      );
+
+    /*
+     * =====================================
+     * DATE
+     * =====================================
+     */
+
+    case 'date':
+      return (
+        <View>
+          <InputField
+            label={field.label}
+            icon={field.icon}
+            placeholder={
+              field.placeholder ??
+              'Selecione uma data'
+            }
+            value={
+              value
+                ? new Date(
+                    value,
+                  ).toLocaleDateString(
+                    'pt-BR',
+                  )
+                : ''
+            }
+            editable={false}
+            onPress={() => {}}
+          />
+
+          <DateTimePicker
+            value={
+              value
+                ? new Date(value)
+                : new Date()
+            }
+            mode="date"
+            display="default"
+            onChange={(
+              _event,
+              selectedDate,
+            ) => {
+              if (
+                selectedDate
+              ) {
+                onChange(
+                  selectedDate.toISOString(),
+                );
+              }
+            }}
+          />
         </View>
       );
 

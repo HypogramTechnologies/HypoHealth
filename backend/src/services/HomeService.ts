@@ -1,33 +1,27 @@
 import prisma from "../database/db";
+import { MedicAgendamentoQueryService } from "./MedicAgendamentoQueryService";
 
 export class HomeService {
-  async header() {
+  private medicService = new MedicAgendamentoQueryService();
+
+  async header(usuarioId: string) {
     const hoje = new Date();
+    const medicamentosHoje =
+      await this.medicService.getMedicamentosDoDia(usuarioId);
 
-    const inicioDia = new Date();
-    inicioDia.setHours(0, 0, 0, 0);
+    // total de horários do dia
+    const totalMedicamentosHoje = medicamentosHoje.reduce(
+      (total, medicamento) => total + medicamento.horarios.length,
+      0,
+    );
 
-    const fimDia = new Date();
-    fimDia.setHours(23, 59, 59, 999);
-
-    const totalMedicamentosHoje = await prisma.retiradaMedicamento.count({
-      where: {
-        horario_programado: {
-          gte: inicioDia,
-          lte: fimDia,
-        },
-      },
-    });
-
-    const totalTomadosHoje = await prisma.retiradaMedicamento.count({
-      where: {
-        horario_programado: {
-          gte: inicioDia,
-          lte: fimDia,
-        },
-        status: "RETIRADO",
-      },
-    });
+    // total retirado
+    const totalTomadosHoje = medicamentosHoje.reduce(
+      (total, medicamento) =>
+        total +
+        medicamento.horarios.filter((h) => h.status === "RETIRADO").length,
+      0,
+    );
 
     const dataAtual = new Intl.DateTimeFormat("pt-BR", {
       weekday: "long",

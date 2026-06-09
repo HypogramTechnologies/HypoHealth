@@ -3,6 +3,7 @@ import {
   View,
   TextInput,
   TouchableOpacity,
+  Text
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/Theme/themeContext';
@@ -12,17 +13,20 @@ type Props = {
   value: string;
   onChange(text: string): void;
   onRemove?(): void;
+  error?: string;
 };
 
 export function TimeField({
   value,
   onChange,
   onRemove,
+  error,
 }: Props) {
   const { theme } = useTheme();
   const s = useStyles(theme);
 
   return (
+  <View>
     <View style={s.timeRow}>
       <TextInput
         value={value}
@@ -42,5 +46,12 @@ export function TimeField({
         </TouchableOpacity>
       )}
     </View>
-  );
+
+    {error && (
+      <Text style={s.error}>
+        {error}
+      </Text>
+    )}
+  </View>
+);
 }

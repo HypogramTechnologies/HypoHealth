@@ -99,9 +99,13 @@ export function InputCombo<T extends string>({
         >
           {icon && (
             <MaterialCommunityIcons
-              symbol={icon}
+              name={icon as any}
               size={18}
-              color={disabled ? theme.colors.opaco : theme.colors.destaque}
+              color={
+                disabled
+                  ? theme.colors.opaco
+                  : theme.colors.destaque
+              }
             />
           )}
 
@@ -110,7 +114,11 @@ export function InputCombo<T extends string>({
               flex: 1,
               fontSize: theme.sizes.mediumText.fontSize,
               marginLeft: icon ? 8 : 0,
-              color: value ? theme.colors.text : theme.colors.opaco,
+              color:
+  value !== undefined &&
+  value !== ''
+    ? theme.colors.text
+    : theme.colors.opaco,
             }}
           >
             {value
@@ -145,7 +153,9 @@ export function InputCombo<T extends string>({
             >
               <FlatList
                 data={allOptions}
-                keyExtractor={item => String(item.value)}
+                keyExtractor={(item, index) =>
+                  `${item.value}-${index}`
+                }
                 renderItem={({ item }) => (
                   <TouchableOpacity
                     onPress={() => {

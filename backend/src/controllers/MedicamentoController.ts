@@ -5,7 +5,7 @@ import { logger } from "../utils/logger";
 export class MedicamentoController {
   async create(req: Request, res: Response) {
     try {
-      const { nome, dosagem, descricao } = req.body;
+      const { nome, dosagem, descricao, usuario_id } = req.body;
 
       if (!nome || !dosagem) {
         return res
@@ -18,6 +18,7 @@ export class MedicamentoController {
           nome,
           dosagem,
           descricao,
+          usuario_id,
         },
       });
       return res.status(201).json(novoMedicamento);

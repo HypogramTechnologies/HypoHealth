@@ -7,29 +7,54 @@ const horarioService = new AgendamentoHorarioService();
 export class AgendamentoService {
   async create(dados: any, tx?: any) {
     const db = tx || prisma;
-    const { horario, horarios, ...restoDados } = dados;
+
+    const {
+      horario,
+      horarios,
+
+      compartimento_ids,
+
+      ...restoDados
+    } = dados;
 
     try {
-      const agendamento = await db.agendamento.create({
-        data: {
-          ...restoDados,
-          data_inicio: new Date(restoDados.data_inicio),
-          data_fim: restoDados.data_fim ? new Date(restoDados.data_fim) : null,
-        },
-      });
+      const agendamentosCriados = [];
 
-      // Criar horário(s) se fornecido(s)
-      if (horario) {
-        await horarioService.create(agendamento.id, horario, tx);
-      } else if (horarios && Array.isArray(horarios) && horarios.length > 0) {
-        await horarioService.createMultiple(agendamento.id, horarios, tx);
+      // LOOP DOS COMPARTIMENTOS
+      for (const compartimento_id of compartimento_ids) {
+        const agendamento = await db.agendamento.create({
+          data: {
+            ...restoDados,
+
+            compartimento_id,
+
+            data_inicio: new Date(restoDados.data_inicio),
+
+            data_fim: restoDados.data_fim
+              ? new Date(restoDados.data_fim)
+              : null,
+          },
+        });
+
+        // HORÁRIO ÚNICO
+        if (horario) {
+          await horarioService.create(agendamento.id, horario, tx);
+        }
+
+        // MÚLTIPLOS HORÁRIOS
+        else if (horarios && Array.isArray(horarios) && horarios.length > 0) {
+          await horarioService.createMultiple(agendamento.id, horarios, tx);
+        }
+
+        agendamentosCriados.push(agendamento);
       }
 
-      return agendamento;
+      return agendamentosCriados;
     } catch (error) {
       logger.error(
         `[AgendamentoService] Erro ao criar agendamento: ${String(error)}`,
       );
+
       throw error;
     }
   }

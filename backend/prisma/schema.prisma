@@ -6,8 +6,6 @@ datasource db {
   provider = "postgresql"
 }
 
-
-
 enum DiaSemana {
   DOMINGO
   SEGUNDA
@@ -18,12 +16,11 @@ enum DiaSemana {
   SABADO
 }
 
-
 model Dispositivo {
-  id             String           @id @default(uuid()) @db.Uuid
-  nome           String?          @db.VarChar(100)
-  numero_serie   String           @unique @db.VarChar(100)
-  criado_em      DateTime         @default(now())
+  id           String   @id @default(uuid()) @db.Uuid
+  nome         String?  @db.VarChar(100)
+  numero_serie String   @unique @db.VarChar(100)
+  criado_em    DateTime @default(now())
 
   usuarios       UsuarioDispositivo[]
   compartimentos Compartimento[]
@@ -32,47 +29,52 @@ model Dispositivo {
 }
 
 model Compartimento {
-  id             String         @id @default(uuid()) @db.Uuid
-  dispositivo_id String         @db.Uuid
+  id             String    @id @default(uuid()) @db.Uuid
+  dispositivo_id String    @db.Uuid
   posicao        Int
-  dia_semana     DiaSemana    
-  descricao      String?        @db.VarChar(100)
-  
-  dispositivo    Dispositivo    @relation(fields: [dispositivo_id], references: [id], onDelete: Cascade)
-  medicamentos   MedicamentoCompartimento[]
-  agendamentos   Agendamento[]  
+  dia_semana     DiaSemana
+  descricao      String?   @db.VarChar(100)
+
+  dispositivo  Dispositivo                @relation(fields: [dispositivo_id], references: [id], onDelete: Cascade)
+  medicamentos MedicamentoCompartimento[]
+  agendamentos Agendamento[]
+
   @@unique([dispositivo_id, dia_semana])
   @@map("compartimentos")
 }
 
-
-
 model Medicamento {
-  id               String                     @id @default(uuid()) @db.Uuid
-  nome             String                     @db.VarChar(150)
-  descricao        String                     @db.VarChar(150)
-  dosagem          String                     @db.VarChar(50)
-  criado_em        DateTime                   @default(now())
+  id String @id @default(uuid()) @db.Uuid
 
-  compartimentos   MedicamentoCompartimento[]
-  agendamentos     Agendamento[]
+  usuario_id String @db.Uuid
 
+  nome      String @db.VarChar(150)
+  descricao String @db.VarChar(150)
+  dosagem   String @db.VarChar(50)
+
+  criado_em DateTime @default(now())
+
+  usuario Usuario @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
+
+  compartimentos MedicamentoCompartimento[]
+  agendamentos   Agendamento[]
+
+  @@index([usuario_id])
   @@map("medicamentos")
 }
 
 model MedicamentoCompartimento {
-  id               String         @id @default(uuid()) @db.Uuid
+  id String @id @default(uuid()) @db.Uuid
 
-  medicamento_id   String         @db.Uuid
-  compartimento_id String         @db.Uuid
+  medicamento_id   String @db.Uuid
+  compartimento_id String @db.Uuid
 
-  medicamento      Medicamento    @relation(fields: [medicamento_id], references: [id], onDelete: Cascade)
-  compartimento    Compartimento  @relation(fields: [compartimento_id], references: [id], onDelete: Cascade)
+  medicamento   Medicamento   @relation(fields: [medicamento_id], references: [id], onDelete: Cascade)
+  compartimento Compartimento @relation(fields: [compartimento_id], references: [id], onDelete: Cascade)
 
   @@unique([medicamento_id, compartimento_id])
   @@index([medicamento_id])
   @@index([compartimento_id])
-
   @@map("medicamentos_compartimentos")
 }
 
@@ -82,20 +84,20 @@ enum TipoAgendamento {
 }
 
 model Agendamento {
-  id                String           @id @default(uuid()) @db.Uuid
-  medicamento_id    String           @db.Uuid
-  compartimento_id  String           @db.Uuid  
+  id               String          @id @default(uuid()) @db.Uuid
+  medicamento_id   String          @db.Uuid
+  compartimento_id String          @db.Uuid
+  ativo            Boolean         @default(true)
+  tipo             TipoAgendamento
+  data_inicio      DateTime
+  data_fim         DateTime?
+  intervalo_horas  Int?
+  criado_em        DateTime        @default(now())
 
-  tipo              TipoAgendamento
-  data_inicio       DateTime
-  data_fim          DateTime?
-  intervalo_horas   Int?
-  criado_em         DateTime         @default(now())
+  medicamento   Medicamento   @relation(fields: [medicamento_id], references: [id], onDelete: Cascade)
+  compartimento Compartimento @relation(fields: [compartimento_id], references: [id], onDelete: Cascade)
 
-  medicamento       Medicamento      @relation(fields: [medicamento_id], references: [id], onDelete: Cascade)
-  compartimento     Compartimento    @relation(fields: [compartimento_id], references: [id], onDelete: Cascade)
-
-  horarios          AgendamentoHorario[]
+  horarios AgendamentoHorario[]
 
   @@index([medicamento_id])
   @@index([compartimento_id])
@@ -103,11 +105,11 @@ model Agendamento {
 }
 
 model AgendamentoHorario {
-  id             String      @id @default(uuid()) @db.Uuid
-  agendamento_id String      @db.Uuid
-  horario        DateTime    @db.Time
+  id             String   @id @default(uuid()) @db.Uuid
+  agendamento_id String   @db.Uuid
+  horario        DateTime @db.Time
 
-  agendamento    Agendamento @relation(fields: [agendamento_id], references: [id], onDelete: Cascade)
+  agendamento Agendamento @relation(fields: [agendamento_id], references: [id], onDelete: Cascade)
 
   retiradas RetiradaMedicamento[]
 
@@ -116,25 +118,24 @@ model AgendamentoHorario {
 }
 
 model RetiradaMedicamento {
-  id                       String               @id @default(uuid()) @db.Uuid
+  id String @id @default(uuid()) @db.Uuid
 
-  agendamento_horario_id   String               @db.Uuid
+  agendamento_horario_id String @db.Uuid
 
-  horario_programado       DateTime             @db.Timestamp(6)
-  horario_retirada         DateTime?            @db.Timestamp(6)
+  horario_programado DateTime  @db.Timestamp(6)
+  horario_retirada   DateTime? @db.Timestamp(6)
 
-  status                   StatusRetirada       @default(PENDENTE)
+  status StatusRetirada @default(PENDENTE)
 
-  criado_em                DateTime             @default(now())
+  criado_em DateTime @default(now())
 
-  atualizado_em           DateTime @updatedAt
+  atualizado_em DateTime @updatedAt
 
-  dispositivo_evento_id   String?
+  dispositivo_evento_id String?
 
-  agendamentoHorario       AgendamentoHorario   @relation( fields: [agendamento_horario_id], references: [id],onDelete: Cascade)
+  agendamentoHorario AgendamentoHorario @relation(fields: [agendamento_horario_id], references: [id], onDelete: Cascade)
 
   @@index([agendamento_horario_id])
-
   @@map("retiradas_medicamentos")
 }
 
@@ -151,30 +152,34 @@ enum StatusRetirada {
 }
 
 model Usuario {
-  id          String   @id @default(uuid()) @db.Uuid
-  nome        String   @db.VarChar(150)
-  email       String   @unique @db.VarChar(150)
-  senha       String
-  criado_em   DateTime @default(now())
+  id String @id @default(uuid()) @db.Uuid
+
+  nome       String  @db.VarChar(150)
+  email      String  @unique @db.VarChar(150)
+  senha      String
+  push_token String?
+
+  criado_em DateTime @default(now())
 
   dispositivos UsuarioDispositivo[]
+
+  medicamentos Medicamento[]
 }
 
 model UsuarioDispositivo {
-  id             String   @id @default(uuid()) @db.Uuid
+  id String @id @default(uuid()) @db.Uuid
 
-  usuario_id     String   @db.Uuid
-  dispositivo_id String   @db.Uuid
+  usuario_id     String @db.Uuid
+  dispositivo_id String @db.Uuid
 
-  tipo_acesso    TipoAcesso
-  criado_em      DateTime @default(now())
+  tipo_acesso TipoAcesso
+  criado_em   DateTime   @default(now())
 
-  usuario        Usuario      @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
-  dispositivo    Dispositivo  @relation(fields: [dispositivo_id], references: [id], onDelete: Cascade)
+  usuario     Usuario     @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
+  dispositivo Dispositivo @relation(fields: [dispositivo_id], references: [id], onDelete: Cascade)
 
   @@unique([usuario_id, dispositivo_id])
   @@index([usuario_id])
   @@index([dispositivo_id])
-
   @@map("usuarios_dispositivos")
 }

@@ -69,7 +69,7 @@ export function AppStack() {
       <Stack.Screen
         name="MedicamentoForm"
         component={MedicamentoForm}
-        options={{ title: "Medicamentos", ...headerOptions }}
+        options={{ title: "Medicamento", ...headerOptions }}
       />
 
       {/* <Stack.Screen
@@ -97,7 +97,7 @@ export function AppStack() {
       <Stack.Screen
         name="ResponsavelForm"
         component={ResponsavelForm}
-        options={{ title: "Adicionar Responsável", ...headerOptions }}
+        options={{ title: "Responsável", ...headerOptions }}
       />
     </Stack.Navigator>
   );

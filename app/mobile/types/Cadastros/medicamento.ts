@@ -8,6 +8,8 @@ export interface Medicamento {
   medicamentoDosagem: string;
 
   medicamentoCriadoEm: string;
+
+  
 }
 
 export interface MedicamentoDetalhado {
@@ -16,6 +18,8 @@ export interface MedicamentoDetalhado {
   nome: string;
 
   descricao: string;
+
+  usuario_id?: string;
 
   dosagem: string;
 
@@ -42,6 +46,24 @@ export interface MedicamentoFiltro {
   medicamentoDosagem?: string;
 
   medicamentoDescricao?: string;
+
+  usuario_id?: string;
+
+  tipo?: "HORARIO_FIXO" | "INTERVALO";
+
+  status?:
+    | "PENDENTE"
+    | "RETIRADO"
+    | "ATRASADO"
+    | "NAO_RETIRADO";
+
+  criado_em_inicio?: string;
+
+  criado_em_fim?: string;
+
+  data_inicio?: string;
+
+  data_fim?: string;
 }
 
 export type TipoMedicamento =
@@ -55,7 +77,9 @@ export type CreateMedicamentoDTO = {
 
   descricao: string;
 
-  compartimento_id: string;
+  usuario_id?: string;
+
+  compartimento_ids: string[];
 
   tipo: TipoMedicamento;
 
@@ -76,6 +100,8 @@ export type UpdateMedicamentoDTO = {
   dosagem?: string;
 
   descricao?: string;
+
+  usuario_id?: string;
 
   compartimento_id?: string;
 

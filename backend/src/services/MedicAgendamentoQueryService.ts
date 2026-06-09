@@ -1,27 +1,41 @@
 import prisma from "../database/db";
 import { logger } from "../utils/logger";
+import { MedicamentoQuery } from "../queries/medicamentoQuery";
 
 export class MedicAgendamentoQueryService {
   // Buscar todos os medicamentos com seus agendamentos
-  async getAllCompleto() {
+  async getAllCompleto(filtros?: any) {
     try {
+      const where = MedicamentoQuery.montarFiltros(filtros);
+
       const medicamentos = await prisma.medicamento.findMany({
+        where,
+
         include: {
           agendamentos: {
             include: {
               compartimento: true,
+
               horarios: {
-                orderBy: { horario: "asc" },
+                include: {
+                  retiradas: true,
+                },
+
+                orderBy: {
+                  horario: "asc",
+                },
               },
             },
           },
         },
       });
+
       return medicamentos;
     } catch (error) {
       logger.error(
         `[MedicAgendamentoQueryService] Erro ao buscar medicamentos com agendamentos: ${String(error)}`,
       );
+
       throw error;
     }
   }
@@ -59,7 +73,7 @@ export class MedicAgendamentoQueryService {
   async getAgendamentoCompleto(agendamento_id: string) {
     try {
       const agendamento = await prisma.agendamento.findUnique({
-        where: { id: agendamento_id },
+        where: { id: agendamento_id, ativo: true },
         include: {
           medicamento: true,
           compartimento: true,
@@ -85,6 +99,9 @@ export class MedicAgendamentoQueryService {
   async getAllAgendamentosCompleto() {
     try {
       const agendamentos = await prisma.agendamento.findMany({
+        where: {
+          ativo: true,
+        },
         include: {
           medicamento: true,
           compartimento: true,
@@ -116,30 +133,65 @@ export class MedicAgendamentoQueryService {
       const fim = new Date(hoje);
       fim.setHours(23, 59, 59, 999);
 
+      // DOMINGO -> SABADO
+      const diasSemana = [
+        "DOMINGO",
+        "SEGUNDA",
+        "TERCA",
+        "QUARTA",
+        "QUINTA",
+        "SEXTA",
+        "SABADO",
+      ] as const;
+
+      const diaSemana = diasSemana[hoje.getDay()];
+
+      // 1. buscar dispositivos do usuário
+      const dispositivos = await prisma.usuarioDispositivo.findMany({
+        where: {
+          usuario_id: usuarioId,
+        },
+
+        select: {
+          dispositivo_id: true,
+        },
+      });
+
+      const dispositivosIds = dispositivos.map((d) => d.dispositivo_id);
+
+      // sem dispositivos
+      if (dispositivosIds.length === 0) {
+        return [];
+      }
+
+      // 2. buscar agendamentos
       const agendamentos = await prisma.agendamento.findMany({
         where: {
+          ativo: true,
           compartimento: {
-            dispositivo: {
-              usuarios: {
-                some: {
-                  usuario: {
-                    id: usuarioId,
-                  },
-                },
-              },
+            dispositivo_id: {
+              in: dispositivosIds,
             },
+
+            dia_semana: diaSemana,
           },
         },
+
         include: {
-          medicamento: true,
+          medicamento: {
+            select: {
+              id: true,
+              nome: true,
+              dosagem: true,
+            },
+          },
 
           compartimento: {
-            include: {
-              dispositivo: {
-                include: {
-                  usuarios: true,
-                },
-              },
+            select: {
+              id: true,
+              dispositivo_id: true,
+              posicao: true,
+              dia_semana: true,
             },
           },
 
@@ -152,8 +204,13 @@ export class MedicAgendamentoQueryService {
                     lte: fim,
                   },
                 },
+
+                orderBy: {
+                  horario_programado: "asc",
+                },
               },
             },
+
             orderBy: {
               horario: "asc",
             },
@@ -161,13 +218,25 @@ export class MedicAgendamentoQueryService {
         },
       });
 
+      // 3. normalizar resposta
       const resultado = agendamentos.map((agendamento) => {
         return {
           id: agendamento.id,
+
           medicamento: {
             id: agendamento.medicamento.id,
+
             nome: agendamento.medicamento.nome,
+
             dosagem: agendamento.medicamento.dosagem,
+          },
+
+          compartimento: {
+            id: agendamento.compartimento.id,
+
+            posicao: agendamento.compartimento.posicao,
+
+            dia_semana: agendamento.compartimento.dia_semana,
           },
 
           horarios: agendamento.horarios.map((h) => {
@@ -176,20 +245,35 @@ export class MedicAgendamentoQueryService {
             let status: "PENDENTE" | "RETIRADO" | "ATRASADO" | "NAO_RETIRADO" =
               retirada?.status ?? "PENDENTE";
 
-            const agora = new Date();
+            // converter TIME para horário de hoje
+            const horarioTexto = h.horario.toISOString().substring(11, 16);
 
-            if (!retirada && new Date(h.horario) < agora) {
+            const [hora, minuto] = horarioTexto.split(":").map(Number);
+
+            const horarioHoje = new Date();
+
+            horarioHoje.setHours(hora, minuto, 0, 0);
+
+            // atraso automático
+            if (!retirada && horarioHoje < hoje) {
               status = "ATRASADO";
             }
 
             return {
               id: h.id,
-              horario: h.horario.toISOString().substring(11, 16),
+
+              horario: horarioTexto,
+
               status,
+
               horario_retirada: retirada?.horario_retirada ?? null,
             };
           }),
         };
+      });
+
+      console.dir(resultado, {
+        depth: null,
       });
 
       return resultado;
@@ -197,6 +281,7 @@ export class MedicAgendamentoQueryService {
       logger.error(
         `[MedicAgendamentoQueryService] Erro ao buscar medicamentos do dia para usuário ${usuarioId}: ${String(error)}`,
       );
+
       throw error;
     }
   }

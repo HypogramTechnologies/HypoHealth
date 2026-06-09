@@ -14,6 +14,7 @@ api.interceptors.response.use(
   (error) => {
     const message =
       error?.response?.data?.message ||
+      error?.response?.data?.erro ||
       'Erro na comunicação com o servidor';
 
     return Promise.reject(new Error(message));

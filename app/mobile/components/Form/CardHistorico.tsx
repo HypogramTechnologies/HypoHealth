@@ -1,11 +1,24 @@
+import dayjs from 'dayjs';
 import { HistoricoItem } from '../../types/Outros/historico';
-import { View, Text } from 'react-native';
+import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { formatarHora } from '../../utils/formatar';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/Theme/themeContext';
 
-export function HistoricoCard({ item }: { item: HistoricoItem }) {
+export function HistoricoCard({
+  item,
+  onReabrir,
+  loading = false,
+}: {
+  item: HistoricoItem;
+  onReabrir?: () => void | Promise<void>;
+  loading?: boolean;
+}) {
   const tomado = item.status === 'tomado';
+  const podeReabrir =
+    Boolean(onReabrir) &&
+    item.status === 'nao_tomado' &&
+    dayjs(item.dataHora).isSame(dayjs(), 'day');
   const { theme } = useTheme();
   return (
     <View
@@ -57,17 +70,44 @@ export function HistoricoCard({ item }: { item: HistoricoItem }) {
       </View>
 
       {/* DIREITA */}
-      <Text
-        style={{
-          color: tomado ? theme.colors.primary : theme.colors.error,
-          fontWeight: 'bold',
-          fontSize: 12,
-        }}
-      >
-        {tomado
-          ? `Tomado ${item.horaTomado}`
-          : 'Não tomado'}
-      </Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <Text
+          style={{
+            color: tomado ? theme.colors.primary : theme.colors.error,
+            fontWeight: 'bold',
+            fontSize: 12,
+            marginRight: podeReabrir ? 8 : 0,
+          }}
+        >
+          {tomado ? `Tomado ${item.horaTomado}` : 'Não tomado'}
+        </Text>
+
+        {podeReabrir ? (
+          <TouchableOpacity
+            onPress={onReabrir}
+            disabled={loading}
+            accessibilityLabel="Reabrir compartimento"
+            style={{
+              width: 34,
+              height: 34,
+              borderRadius: 10,
+              backgroundColor: theme.colors.primary,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            {loading ? (
+              <ActivityIndicator size="small" color={theme.colors.text} />
+            ) : (
+              <MaterialCommunityIcons
+                name="lock-open-variant"
+                size={18}
+                color={theme.colors.text}
+              />
+            )}
+          </TouchableOpacity>
+        ) : null}
+      </View>
     </View>
   );
 }

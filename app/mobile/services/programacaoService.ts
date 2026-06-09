@@ -1,8 +1,9 @@
 import {api} from './api';
 
-export async function buscarProgramacao() {
+//getMedicamentoComAgendamentos - medicamentoQueryRoutes
+export async function buscarProgramacao(id: string) {
   const response = await api.get(
-    '/medic-agendamento-query/hoje',
+    `/medicamentos/${id}/hoje`,
   );
 
   return response.data;

@@ -1,27 +1,56 @@
-import { useEffect, useState } from 'react';
+import {
+  useState,
+  useCallback,
+} from "react";
 
-import { buscarProgramacao } from '../../services/programacaoService';
+import {
+  useFocusEffect,
+} from "@react-navigation/native";
 
-import { ProgramacaoItem } from '../../types/Cadastros/medicamento';
+import { buscarProgramacao }
+  from "../../services/programacaoService";
+
+import { ProgramacaoItem }
+  from "../../types/Cadastros/medicamento";
+
+import { useAuth }
+  from "../Auth/useAuth";
 
 export function useProgramacao() {
-  const [dados, setDados] = useState<ProgramacaoItem[]>(
-    [],
-  );
+
+  const [dados, setDados] =
+    useState<ProgramacaoItem[]>([]);
+
+  const { usuario } =
+    useAuth();
 
   async function carregar() {
-    try {
-      const response = await buscarProgramacao();
 
+    try {
+
+      if (!usuario?.usuario_proprietario_id) return;
+    
+      const response =
+        await buscarProgramacao(
+          usuario.usuario_proprietario_id,
+        );
+
+      
       setDados(response);
+
     } catch (error) {
+
       console.log(error);
     }
   }
 
-  useEffect(() => {
-    carregar();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+
+      carregar();
+
+    }, [usuario?.id]),
+  );
 
   return {
     dados,

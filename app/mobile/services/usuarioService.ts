@@ -2,12 +2,14 @@ import { api } from './api';
 
 export interface Dispositivo {
   id: string;
-  tipo: string;
+  tipo_acesso: string;
+  nome: string | null;
+  numero_serie: string;
 }
 
 export interface Usuario {
   id: string;
-  nome: string;
+  nome: string | null;
   email: string;
   criado_em: string;
   dispositivos?: Dispositivo[];
@@ -70,4 +72,14 @@ export const UsuarioService = {
   async delete(id: string): Promise<void> {
     await api.delete(`${ENDPOINT}/${id}`);
   },
+
+  async salvarPushToken(id: string, token: string): Promise<void> {
+    try {
+      await api.put(`${ENDPOINT}/${id}/push-token`, { token });
+      console.log("[usuarioService] Push Token enviado para o servidor.");
+    } catch (error) {
+      console.error("[usuarioService] Erro ao salvar push token no backend:", error);
+      throw error;
+    }
+  }
 };

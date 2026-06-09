@@ -7,7 +7,8 @@ const homeService = new HomeService();
 export class HomeController {
   async header(req: Request, res: Response) {
     try {
-      const dados = await homeService.header();
+      const usuarioId = req.params.id as string;
+      const dados = await homeService.header(usuarioId);
 
       return res.status(200).json(dados);
     } catch (error) {

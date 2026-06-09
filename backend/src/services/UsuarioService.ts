@@ -56,6 +56,55 @@ export class UsuarioService {
     };
   }
 
+  async updatePushToken(
+    id: string,
+    token: string,
+  ): Promise<UsuarioResponseDTO> {
+    const usuario = await prisma.usuario.update({
+      where: { id },
+      data: { push_token: token },
+    });
+
+    return {
+      id: usuario.id,
+      nome: usuario.nome,
+      email: usuario.email,
+      criado_em: usuario.criado_em,
+    };
+  }
+
+  async getByEmail(email: string): Promise<UsuarioResponseDTO | null> {
+    const usuario = await prisma.usuario.findUnique({
+      where: { email },
+
+      include: {
+        dispositivos: {
+          include: {
+            dispositivo: true,
+          },
+        },
+      },
+    });
+
+    if (!usuario) {
+      return null;
+    }
+
+    return {
+      id: usuario.id,
+      nome: usuario.nome,
+      email: usuario.email,
+      criado_em: usuario.criado_em,
+
+      dispositivos: usuario.dispositivos.map((d) => ({
+        id: d.id,
+        tipo: d.tipo_acesso,
+        nome: d.dispositivo.nome,
+        numero_serie: d.dispositivo.numero_serie,
+      })),
+    };
+  }
+
   async getAll(): Promise<UsuarioResponseDTO[]> {
     const usuarios = await prisma.usuario.findMany({
       orderBy: { criado_em: "desc" },
@@ -73,7 +122,11 @@ export class UsuarioService {
     const usuario = await prisma.usuario.findUnique({
       where: { id },
       include: {
-        dispositivos: true,
+        dispositivos: {
+          include: {
+            dispositivo: true,
+          },
+        },
       },
     });
 
@@ -85,8 +138,10 @@ export class UsuarioService {
       email: usuario.email,
       criado_em: usuario.criado_em,
       dispositivos: usuario.dispositivos.map((d) => ({
-        id: d.id,
+        id: d.dispositivo.id,
         tipo: d.tipo_acesso,
+        nome: d.dispositivo.nome,
+        numero_serie: d.dispositivo.numero_serie,
       })),
     };
   }

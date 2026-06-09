@@ -115,19 +115,47 @@ docker-compose up -d
 <img width="947" height="495" alt="image" src="https://github.com/user-attachments/assets/b5f08de1-31fc-4782-870a-44c2f33a01c5" />
 ---
 
-### 🌀 Sprint 2
-
-#### 📋 Tarefas  
-
-| ID         | Nome                                                                                         | Responsáveis                                      | Tarefa Finalizada | Link                                                               | Requisitos atendidos |
-|-------------|----------------------------------------------------------------------------------------------|---------------------------------------------------|-------------------|--------------------------------------------------------------------|----------------------|
-
-
-
 #### 📉 Burndown  
 
 [Burndown Sprint 2]()  
 
+---
+
+### 🌀 Sprint 2
+
+#### 📋 Tarefas  
+
+| ID | Nome | Responsável(is) | Status | Link | Requisitos Atendidos |
+|---|---|---|---|---|---|
+| -- | Criar registro 'PENDENTE' na retiradaMedicamento | Carlos Eduardo da Silva Magalhães | ✔ | https://trello.com/c/RJKetRMG/52-criar-registro-pendente-na-retiradamedicamento | — |
+| -- | Implementar Logs | Carlos Eduardo da Silva Magalhães | ✔ | https://trello.com/c/pYYe9kdV/63-implementar-logs | — |
+| -- | Evitar duplicidade | Eduardo Henrique Alves Arantes | ✔ | https://trello.com/c/D3s3gWec/48-evitar-duplicidade | — |
+| -- | Conectar MQTT (ESP32) | Andressa Stephane Toledo da Silva | ✔ | https://trello.com/c/87ypW9wV/54-conectar-mqtt-esp32 | RF11, RNF02/03 |
+| -- | Conectar WI-FI (ESP32) | Andressa Stephane Toledo da Silva | ✔ | https://trello.com/c/x0NpNYmr/53-conectar-wi-fi-esp32 | RNF02/03 |
+| -- | Criar CRUD para requisição simultânea | João Pedro Souza dos Anjos | ✔ | https://trello.com/c/D81Q4j3D/64-criar-crud-para-requisição-simultânea | — |
+| -- | Registrar retirada | Eduardo Henrique Alves Arantes | ✔ | https://trello.com/c/99g2Zmaa/47-registrar-retirada | — |
+| -- | Listener de eventos | Carlos Eduardo da Silva Magalhães | ✔ | https://trello.com/c/KKDdxwFN/45-listener-de-eventos | RF11 |
+| -- | Implementar tela de Cadastro de Usuário | Adson Ottoni Balbino Filho | ✔ | https://trello.com/c/t1THwfFh/28-implementar-tela-de-cadastro-de-usuário | — |
+| -- | Fazer uso da tabela Agendamento-horário | Eduardo Henrique Alves Arantes | ✔ | https://trello.com/c/zf03i9HY/65-fazer-uso-da-tabela-agendamento-horário | RF01/02 |
+| -- | Detectar abertura | Andressa Stephane Toledo da Silva | ✔ | https://trello.com/c/Uh08BGUp/58-detectar-abertura | RF03/04 |
+| -- | Tabelas de retiradas | Eduardo Henrique Alves Arantes | ✔ | https://trello.com/c/D6R51RYe/46-tabela-de-retiradas | — |
+| -- | Alerta sonoro | Andressa Stephane Toledo da Silva | ✔ | https://trello.com/c/uMrWhNze/57-alerta-sonoro | RF05/08 |
+| -- | Enviar comando para IoT | Carlos Eduardo da Silva Magalhães | ✔ | https://trello.com/c/ME9Dtqs2/44-enviar-comando-para-iot | RF11 |
+| -- | Implementar tela de Login (com autenticação) | Adson Ottoni Balbino Filho | ✔ | https://trello.com/c/rOd5xBxa/27-implementar-tela-de-login-com-autenticação | RNF02/03 |
+| -- | Definir tópicos: .device/{id}/command e .device/{id}/event | Carlos Eduardo da Silva Magalhães | ✔ | https://trello.com/c/Gfdz0HWG/43-definir-tópicos-device-id-command-device-id-event | RF11, RNF02/03 |
+| -- | Criar serviço MQTT no backend | Carlos Eduardo da Silva Magalhães | ✔ | https://trello.com/c/46AhWk7j/42-criar-serviço-mqtt-no-backend | RF11, RNF02/03 |
+| -- | Instalar e configurar MQTT | Carlos Eduardo da Silva Magalhães | ✔ | https://trello.com/c/kZodtRg0/41-instalar-e-configurar-mqtt | RNF02/03 |
+| -- | Endpoint medicamentos do dia | Adson Ottoni Balbino Filho | ✔ | https://trello.com/c/j6PfpkU1/51-endpoint-medicamentos-do-dia | RF01/02 |
+| -- | Implementar cadastro de Responsável | Adson Ottoni Balbino Filho | ✔ | https://trello.com/c/KJrwgDjq/24-implementar-cadastro-de-responsável | — |
+| -- | Monitoramento de atraso | Eduardo Henrique Alves Arantes | ✔ | https://trello.com/c/KSK9Uwol/50-monitoramento-de-atraso | RF05/08 |
+
+---
+
+#### 📉 Burndown  
+
+[Burndown Sprint 2](https://docs.google.com/spreadsheets/d/1YuzbyKSY1FIR5lAljDzvItmEe6e0Qt3qpkBV0XSYNkI/edit?pli=1&gid=597853115#gid=597853115)
+
+<img width="853" height="447" alt="image" src="https://github.com/user-attachments/assets/11d9bd46-e1d6-4abc-9a9a-26f102496b34" />
 ---
 
 ### 🌀 Sprint 3

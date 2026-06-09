@@ -3,7 +3,7 @@
 #include <PubSubClient.h>
 #include <Stepper.h>
 #include <ArduinoJson.h>
-
+#include "time.h"
 //////////////////////////////////////////////////
 // WIFI
 //////////////////////////////////////////////////
@@ -20,293 +20,260 @@ const char* mqtt_user = "Hypogram";
 const char* mqtt_pass = "MinhaSenha123!";
 
 const char* mqtt_server = "9047749c8e904e73bc5ba2d8fce67b59.s1.eu.hivemq.cloud"; 
-const int mqtt_port = 8883; // Porta para placas/IoT (MQTT sobre TLS)
+const int mqtt_port = 8883; 
+
 
 WiFiClientSecure espClient;
 PubSubClient client(espClient);
 
 //////////////////////////////////////////////////
-// MOTOR DE PASSO
+// MOTOR
 //////////////////////////////////////////////////
-
 const int stepsPerRevolution = 2048;
-
-Stepper motor(
-  stepsPerRevolution,
-  17,
-  5,
-  18,
-  19
-);
+// Pinos corretos: 25, 27, 26, 14
+Stepper motor(stepsPerRevolution, 25, 27, 26, 14);
 
 const int passosPorCompartimento = 256;
-
 int compartimentoAtual = 0;
+const int totalCompartimentos = 8;
 
-//////////////////////////////////////////////////
-// BUZZER
-//////////////////////////////////////////////////
+int passosRestantes = 0;
+int direcaoMotor = 0;
 
-const int buzzerPin = 13;
+unsigned long ultimoMovimento = 0;
+const unsigned long COOLDOWN_MOTOR = 3000;
+bool retornoSolicitado = false;
 
-//////////////////////////////////////////////////
-// SENSOR PIR
-//////////////////////////////////////////////////
-
-const int pirPin = 33;
-
-//////////////////////////////////////////////////
-// CONTROLE
-//////////////////////////////////////////////////
-
-bool aguardandoPresenca = false;
-bool remedioTomado = false;
-
-unsigned long tempoDeteccao = 0;
-unsigned long tempoRetorno = 0;
-
-int compartimentoAberto = 0;
-
-//////////////////////////////////////////////////
-// WIFI
-//////////////////////////////////////////////////
-
-void setupWifi() {
-  delay(10);
-
-  Serial.println();
-  Serial.print("Conectando WiFi ");
-
-  WiFi.begin(ssid, password);
-
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
-
-  Serial.println();
-  Serial.println("WiFi conectado!");
-  Serial.println(WiFi.localIP());
+void desligarMotor() {
+  digitalWrite(25, LOW);
+  digitalWrite(26, LOW);
+  digitalWrite(27, LOW);
+  digitalWrite(14, LOW);
 }
 
-//////////////////////////////////////////////////
-// BEEP
-//////////////////////////////////////////////////
-
-void tocarBuzzer() {
-  for (int i = 0; i < 3; i++) {
-    digitalWrite(buzzerPin, HIGH);
-    delay(300);
-
-    digitalWrite(buzzerPin, LOW);
-    delay(300);
-  }
-}
-
-//////////////////////////////////////////////////
-// MOVER MOTOR
-//////////////////////////////////////////////////
-
-void moverParaCompartimento(int destino) {
-
+void prepararMovimento(int destino) {
   int diferenca = destino - compartimentoAtual;
+
+  if (diferenca > totalCompartimentos / 2) diferenca -= totalCompartimentos;
+  else if (diferenca < -totalCompartimentos / 2) diferenca += totalCompartimentos;
 
   int passos = diferenca * passosPorCompartimento;
 
-  Serial.print("Movendo para compartimento ");
-  Serial.println(destino);
-
-  motor.step(passos);
-
+  passosRestantes = abs(passos);
+  direcaoMotor = (passos > 0) ? 1 : -1;
   compartimentoAtual = destino;
 }
 
-//////////////////////////////////////////////////
-// VOLTAR POSIÇÃO INICIAL
-//////////////////////////////////////////////////
+void gerenciarMotorAsincrono() {
+  if (passosRestantes > 0) {
+    motor.step(direcaoMotor);
+    passosRestantes--; // 🔥 CORREÇÃO: Faltava decrementar os passos!
+    ultimoMovimento = millis();
+  } else {
+    // Desenergiza o motor quando parado
+    if (millis() - ultimoMovimento > COOLDOWN_MOTOR) {
+      desligarMotor();
+    }
+  }
+}
 
 void voltarInicio() {
-
-  Serial.println("Voltando posição inicial");
-
-  int diferenca = 0 - compartimentoAtual;
-
-  int passos = diferenca * passosPorCompartimento;
-
-  motor.step(passos);
-
-  compartimentoAtual = 0;
+  if (retornoSolicitado) return;
+  retornoSolicitado = true;
+  prepararMovimento(0);
 }
 
 //////////////////////////////////////////////////
-// PUBLICAR HISTÓRICO
+// BUZZER (Trocado para porta 19 por segurança)
 //////////////////////////////////////////////////
+const int buzzerPin = 19; 
 
-void publicarHistorico(int compartimento) {
+#define NOTE_E7 2637
+#define NOTE_C7 2093
+#define NOTE_G7 3136
+#define NOTE_G6 1568
 
-  StaticJsonDocument<200> doc;
+void tocarNota(int freq, int duracao) {
+  ledcWriteTone(buzzerPin, freq);
+  delay(duracao);
+  ledcWriteTone(buzzerPin, 0);
+  delay(50);
+}
 
-  doc["compartimento"] = compartimento;
-  doc["status"] = "tomado";
+void tocarMario() {
+  tocarNota(NOTE_E7, 150);
+  tocarNota(NOTE_E7, 150);
+  tocarNota(NOTE_E7, 150);
+  tocarNota(NOTE_C7, 150);
+  tocarNota(NOTE_G7, 300);
+}
+
+//////////////////////////////////////////////////
+// PIR + ESTADOS
+//////////////////////////////////////////////////
+const int pirPin = 33;
+
+enum Estados {
+  ESTADO_IDLE,
+  ESTADO_ALERTA_PRESENCA,
+  ESTADO_ESPERA_TIMER,
+  ESTADO_AGUARDANDO_SAIDA
+};
+
+Estados estadoAtual = ESTADO_IDLE;
+unsigned long cronometroEstado = 0;
+bool alarmeAtivado = false;
+
+const unsigned long TEMPO_MAX_ALERTA = 10000;
+const unsigned long TEMPO_TIMER_REMEDIO = 10000;
+int compartimentoAberto = 0;
+
+//////////////////////////////////////////////////
+// MQTT TÓPICOS & TIME
+//////////////////////////////////////////////////
+String macStr;
+char topicoComando[60];
+char topicoEvento[60];
+
+const char* ntpServer = "a.st1.ntp.br";
+const long gmtOffset_sec = -3 * 3600;
+const int daylightOffset_sec = 0;
+
+String getTimestamp() {
+  struct tm timeinfo;
+  if (!getLocalTime(&timeinfo)) return "2026-01-01T00:00:00Z";
+  char buffer[30];
+  strftime(buffer, sizeof(buffer), "%Y-%m-%dT%H:%M:%SZ", &timeinfo);
+  return String(buffer);
+}
+
+void publicarEvento(const char* tipo, int comp, const char* status) {
+  StaticJsonDocument<256> doc;
+  doc["evento"] = tipo;
+  doc["compartimento"] = comp;
+  doc["timestamp"] = getTimestamp();
+  doc["status"] = status;
 
   char buffer[256];
-
   serializeJson(doc, buffer);
-
-  client.publish(
-    "hypohealth/historico",
-    buffer
-  );
-
-  Serial.println("Histórico enviado");
+  client.publish(topicoEvento, buffer);
 }
-
-//////////////////////////////////////////////////
-// RECEBER MQTT
-//////////////////////////////////////////////////
 
 void callback(char* topic, byte* payload, unsigned int length) {
+  String msg;
+  for (int i = 0; i < length; i++) msg += (char)payload[i];
 
-  String mensagem;
+  StaticJsonDocument<256> doc;
+  if (deserializeJson(doc, msg)) return;
 
-  for (int i = 0; i < length; i++) {
-    mensagem += (char)payload[i];
+  const char* acao = doc["acao"];
+  int comp = doc["compartimento"];
+
+  if (acao && String(acao) == "ABRIR" && estadoAtual == ESTADO_IDLE) {
+    prepararMovimento(comp);
+    alarmeAtivado = false;
+    compartimentoAberto = comp;
+    cronometroEstado = millis();
+    estadoAtual = ESTADO_ALERTA_PRESENCA;
   }
-
-  Serial.println("Mensagem recebida:");
-  Serial.println(mensagem);
-
-  StaticJsonDocument<200> doc;
-
-  DeserializationError error =
-    deserializeJson(doc, mensagem);
-
-  if (error) {
-    Serial.println("Erro JSON");
-    return;
-  }
-
-  int compartimento =
-    doc["compartimento"];
-
-  if (compartimento < 0 || compartimento > 7) {
-    Serial.println("Compartimento inválido");
-    return;
-  }
-
-  tocarBuzzer();
-
-  moverParaCompartimento(compartimento);
-
-  compartimentoAberto = compartimento;
-
-  aguardandoPresenca = true;
-  remedioTomado = false;
 }
 
-//////////////////////////////////////////////////
-// RECONECTAR MQTT
-//////////////////////////////////////////////////
-
-
-void reconnect() {
-
-  while (!client.connected()) {
-
-    Serial.print("Conectando MQTT...");
-
-    String clientId = "ESP32_HypoHealth-";
-    clientId += String(random(1000));
-
-    if (client.connect(clientId.c_str(), mqtt_user, mqtt_pass)) {
-
-      Serial.println(" conectado!");
-
-      client.subscribe("hypohealth/alertas");
+unsigned long ultimaTentativaMQTT = 0;
+void gerenciarConexaoMQTT() {
+  if (!client.connected()) {
+    if (millis() - ultimaTentativaMQTT > 5000) { // Tenta a cada 5s
+      ultimaTentativaMQTT = millis();
+      String id = "ESP32-" + macStr;
+      if (client.connect(id.c_str(), mqtt_user, mqtt_pass)) {
+        client.subscribe(topicoComando);
+      }
     }
-
-    else {
-
-      Serial.print(" erro=");
-      Serial.println(client.state());
-
-      delay(2000);
-    }
+  } else {
+    client.loop();
   }
 }
 
 //////////////////////////////////////////////////
 // SETUP
 //////////////////////////////////////////////////
-
 void setup() {
-
-  Serial.println("INICIANDO HYPOHEALTH");
-
   Serial.begin(115200);
 
-  pinMode(buzzerPin, OUTPUT);
-
   pinMode(pirPin, INPUT);
+  
+  // 🔥 CORREÇÃO: Removidos os pinMode incorretos (17, 18, 5) que causavam conflito
 
-  motor.setSpeed(10);
+  motor.setSpeed(15);
+  ledcAttach(buzzerPin, 5000, 8); // Nova API (Core 3.0+)
 
-  setupWifi();
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+  }
+
+  configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
+
+  macStr = WiFi.macAddress();
+  macStr.replace(":", "");
+  snprintf(topicoComando, 60, "dispositivo/%s/comando", macStr.c_str());
+  snprintf(topicoEvento, 60, "dispositivo/%s/evento", macStr.c_str());
 
   espClient.setInsecure();
-
   client.setServer(mqtt_server, mqtt_port);
-
   client.setCallback(callback);
-
-  Serial.println("Sistema iniciado");
-  Serial.println(WiFi.macAddress());
 }
 
 //////////////////////////////////////////////////
 // LOOP
 //////////////////////////////////////////////////
-
 void loop() {
+  gerenciarConexaoMQTT(); // Não trava mais o código se a internet cair
+  gerenciarMotorAsincrono();
 
-  if (!client.connected()) {
-    reconnect();
-  }
+  int pir = digitalRead(pirPin);
 
-  client.loop();
+  switch (estadoAtual) {
+    case ESTADO_ALERTA_PRESENCA:
+      if (passosRestantes == 0 && !alarmeAtivado) {
+        ledcWriteTone(buzzerPin, NOTE_G6);
+        alarmeAtivado = true;
+      }
 
-  //////////////////////////////////////////////////
-  // DETECTAR PRESENÇA
-  //////////////////////////////////////////////////
+      if (pir == HIGH) {
+        ledcWriteTone(buzzerPin, 0); // Desliga buzzer
+        publicarEvento("ABERTURA", compartimentoAberto, "SUCESSO");
+        cronometroEstado = millis();
+        estadoAtual = ESTADO_ESPERA_TIMER;
+      }
+      else if (millis() - cronometroEstado >= TEMPO_MAX_ALERTA) {
+        ledcWriteTone(buzzerPin, 0); // Desliga buzzer
+        voltarInicio();
+        publicarEvento("FECHAMENTO", compartimentoAberto, "FALHA");
+        estadoAtual = ESTADO_IDLE;
+      }
+      break;
 
-  if (aguardandoPresenca && !remedioTomado) {
+    case ESTADO_ESPERA_TIMER:
+      if (millis() - cronometroEstado >= TEMPO_TIMER_REMEDIO) {
+        estadoAtual = ESTADO_AGUARDANDO_SAIDA;
+      }
+      break;
 
-    int presenca = digitalRead(pirPin);
+    case ESTADO_AGUARDANDO_SAIDA:
+      // Garante que o motor parou antes de tentar voltar
+      if (passosRestantes == 0) {
+        if (compartimentoAtual != 0) {
+          voltarInicio();
+        } else {
+          publicarEvento("FECHAMENTO", compartimentoAberto, "SUCESSO");
+          retornoSolicitado = false;
+          estadoAtual = ESTADO_IDLE;
+        }
+      }
+      break;
 
-    if (presenca == HIGH) {
-
-      Serial.println("Pessoa detectada");
-
-      remedioTomado = true;
-
-      tempoRetorno = millis();
-
-      publicarHistorico(compartimentoAberto);
-    }
-  }
-
-  //////////////////////////////////////////////////
-  // VOLTAR APÓS 5 MIN
-  //////////////////////////////////////////////////
-
-  if (remedioTomado) {
-
-    if (millis() - tempoRetorno >= 10000) {
-
-      voltarInicio();
-
-      remedioTomado = false;
-      aguardandoPresenca = false;
-    }
+    case ESTADO_IDLE:
+    default:
+      break;
   }
 }

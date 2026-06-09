@@ -20,6 +20,12 @@ export const useStyles = (theme: ThemeType) => {
       gap: 10,
     },
 
+    error: {
+      color:theme.colors.error,
+      marginTop: 4,
+      fontSize: 13,
+    },
+    
     numberBox: {
       width: 70,
       height: 54,

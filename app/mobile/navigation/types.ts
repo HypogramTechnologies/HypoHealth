@@ -25,6 +25,6 @@ export type RootStackParamList = {
     agendamentoId?: string;
   };
  
-  
+  AbastecimentoForm: undefined;
  
 };

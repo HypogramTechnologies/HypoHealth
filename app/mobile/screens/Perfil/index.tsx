@@ -143,7 +143,7 @@ export function Perfil() {
           </View>
         </View>
 
-        {/* NOVO: Card de Alternar Tema */}
+      
         <TouchableOpacity 
           style={profileStyles.card} 
           onPress={toggleTheme}

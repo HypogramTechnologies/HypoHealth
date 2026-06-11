@@ -23,7 +23,7 @@ export default function LoginScreen() {
 
   async function handleLogin(data: any) {
     try {
-      const response = await fetch(`${process.env.EXPO_PUBLIC_URL}:${process.env.EXPO_PUBLIC_PORT}/api/auth/login`, {
+      const response = await fetch(`${process.env.EXPO_PUBLIC_URL}${process.env.EXPO_PUBLIC_PORT ? `:${process.env.EXPO_PUBLIC_PORT}` : ''}/api/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

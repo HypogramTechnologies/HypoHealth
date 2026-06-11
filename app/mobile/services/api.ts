@@ -1,7 +1,7 @@
 import axios from 'axios';
 import cors from "cors";
 
-const API_URL = `${process.env.EXPO_PUBLIC_URL}:${process.env.EXPO_PUBLIC_PORT}/api`;
+const API_URL = `${process.env.EXPO_PUBLIC_URL}${process.env.EXPO_PUBLIC_PORT ? `:${process.env.EXPO_PUBLIC_PORT}` : ''}/api`;
 console.log('api_url', API_URL);
 
 export const api = axios.create({

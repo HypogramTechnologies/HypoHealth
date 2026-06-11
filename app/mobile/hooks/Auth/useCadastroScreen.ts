@@ -128,7 +128,7 @@ export function useCadastroScreen() {
       });
 
       const response = await fetch(
-        `${process.env.EXPO_PUBLIC_URL}:${process.env.EXPO_PUBLIC_PORT}/api/auth/cadastro`,
+        `${process.env.EXPO_PUBLIC_URL}${process.env.EXPO_PUBLIC_PORT ? `:${process.env.EXPO_PUBLIC_PORT}` : ''}/api/auth/cadastro`,
         {
           method: "POST",
 

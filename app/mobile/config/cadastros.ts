@@ -14,4 +14,10 @@
       icon: 'people-outline',
       route: 'Responsavel',
     },
+
+    {
+      label: 'Abastecimento',
+      icon: 'medical-outline',
+      route: 'AbastecimentoForm',
+    },
   ] as const;

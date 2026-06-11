@@ -22,6 +22,11 @@ export interface RetiradaMedicamentoResponse {
   agendamentoHorario?: RetiradaMedicamentoHorarioDTO | null;
 }
 
+export interface AbastecerCompartimentoDTO {
+  posicao: number;
+  numero_serie: string;
+}
+
 const ENDPOINT = "/retirada-medicamentos";
 
 export const RetiradaMedicamentoService = {
@@ -39,4 +44,11 @@ export const RetiradaMedicamentoService = {
     const response = await api.post(`${ENDPOINT}/reabrir/${retiradaId}`);
     return response.data;
   },
+
+  async abastecerCompartimento(
+  data: AbastecerCompartimentoDTO,
+): Promise<void> {
+  await api.post(`${ENDPOINT}/abastecer`, data);
+},
+  
 };

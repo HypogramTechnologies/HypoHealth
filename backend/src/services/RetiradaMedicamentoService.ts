@@ -9,6 +9,17 @@ import { DateTime } from "luxon";
 const FUSO_SAO_PAULO = "America/Sao_Paulo";
 
 export class RetiradaMedicamentoService {
+  private converterToDate(agora_fuso: DateTime) {
+    return new Date(
+      agora_fuso.year,
+      agora_fuso.month - 1,
+      agora_fuso.day,
+      agora_fuso.hour,
+      agora_fuso.minute,
+      agora_fuso.second,
+    );
+  }
+
   private obterAgora() {
     return DateTime.now().setZone(FUSO_SAO_PAULO);
   }
@@ -39,7 +50,7 @@ export class RetiradaMedicamentoService {
   // Monitoramento automático de atrasos
   async monitorarAtrasos() {
     try {
-      const agora = new Date();
+      const agora = this.converterToDate(this.obterAgora());
 
       // Buscar retiradas pendentes ou atrasadas
       const retiradas = await prisma.retiradaMedicamento.findMany({
@@ -90,6 +101,36 @@ export class RetiradaMedicamentoService {
         `[RetiradaMedicamentoService] Erro ao monitorar atrasos: ${String(error)}`,
       );
     }
+  }
+
+  async abastecerCompartimento(
+    posicao: number,
+    numeroSerie: string,
+  ): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+      const comando: IMqttCommand = {
+        acao: "ABASTECER",
+        compartimento: posicao,
+        timestamp: this.converterToDate(this.obterAgora()).toString(),
+      };
+
+      mqttService.publishCommand(numeroSerie, comando);
+
+      const timeout = setTimeout(() => {
+        reject(new Error("Timeout"));
+      }, 30000);
+
+      mqttService.onEventReceived((mac: String, payload: IMqttEvent) => {
+        if (
+          payload.evento === "FECHAMENTO_ABASTECIMENTO" &&
+          payload.compartimento === posicao
+        ) {
+          clearTimeout(timeout);
+
+          resolve(payload.status === "SUCESSO");
+        }
+      });
+    });
   }
 
   async reabrirCompartimento(retiradaId: string) {
@@ -144,7 +185,7 @@ export class RetiradaMedicamentoService {
       const comando: IMqttCommand = {
         acao: "ABRIR",
         compartimento: compartimento.posicao,
-        timestamp: agora.toUTC().toFormat("yyyy-MM-dd'T'HH:mm:ss'Z'"),
+        timestamp: this.converterToDate(this.obterAgora()).toString(), // agora.toUTC().toFormat("yyyy-MM-dd'T'HH:mm:ss'Z'"),
       };
 
       mqttService.publishCommand(dispositivo.numero_serie, comando);
@@ -185,9 +226,10 @@ export class RetiradaMedicamentoService {
         return;
       }
 
-      const dataEvento = !isNaN(Number(payload.timestamp))
-        ? new Date(Number(payload.timestamp) * 1000)
-        : new Date(payload.timestamp);
+      const dataString = this.converterToDate(this.obterAgora()).toString();
+      const dataEvento = !isNaN(Number(dataString))
+        ? new Date(Number(dataString) * 1000)
+        : new Date(dataString);
 
       const compartimento = await prisma.compartimento.findFirst({
         where: {

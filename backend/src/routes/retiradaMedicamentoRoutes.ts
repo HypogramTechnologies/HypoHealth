@@ -12,6 +12,9 @@ router.post("/reabrir/:retiradaId", (req, res) =>
   retiradaMedicamentoController.reabrirCompartimento(req, res),
 );
 
+router.post("/abastecer", (req, res) =>
+  retiradaMedicamentoController.abastecerCompartimento(req, res),
+);
 router.get("/historico/:usuarioId", (req, res) =>
   retiradaMedicamentoController.recuperarHistorico(req, res),
 );

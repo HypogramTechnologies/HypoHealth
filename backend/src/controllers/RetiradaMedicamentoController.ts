@@ -20,6 +20,27 @@ export class RetiradaMedicamentoController {
     }
   }
 
+  async abastecerCompartimento(req: Request, res: Response) {
+    try {
+      const { posicao, numero_serie } = req.body;
+
+      await retiradaMedicamentoService.abastecerCompartimento(
+        posicao,
+        numero_serie,
+      );
+
+      return res.status(200).json({
+        success: true,
+        message: "Compartimento aberto para abastecimento",
+      });
+    } catch (error: any) {
+      return res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+
   async reabrirCompartimento(req: Request, res: Response) {
     try {
       const { retiradaId } = req.params;

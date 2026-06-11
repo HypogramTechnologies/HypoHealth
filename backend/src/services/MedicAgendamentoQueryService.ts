@@ -1,6 +1,7 @@
 import prisma from "../database/db";
 import { logger } from "../utils/logger";
 import { MedicamentoQuery } from "../queries/medicamentoQuery";
+import { DateTime } from "luxon";
 
 export class MedicAgendamentoQueryService {
   // Buscar todos os medicamentos com seus agendamentos
@@ -125,7 +126,15 @@ export class MedicAgendamentoQueryService {
   // Buscar medicamentos do dia filtrado por usuário
   async getMedicamentosDoDia(usuarioId: string) {
     try {
-      const hoje = new Date();
+      const hoje_fuso = DateTime.now().setZone("America/Sao_Paulo");
+      const hoje = new Date(
+        hoje_fuso.year,
+        hoje_fuso.month - 1,
+        hoje_fuso.day,
+        hoje_fuso.hour,
+        hoje_fuso.minute,
+        hoje_fuso.second,
+      );
 
       const inicio = new Date(hoje);
       inicio.setHours(0, 0, 0, 0);
@@ -270,10 +279,6 @@ export class MedicAgendamentoQueryService {
             };
           }),
         };
-      });
-
-      console.dir(resultado, {
-        depth: null,
       });
 
       return resultado;

@@ -12,6 +12,7 @@ import { Historico } from "../screens/Cadastros/Historico";
 import { Alerta } from "../screens/Cadastros/Alerta";
 import { ResponsavelForm } from "../screens/Cadastros/Responsavel/ResponsavelForm";
 import { Responsavel } from "../screens/Cadastros/Responsavel";
+import {AbastecimentoForm} from "../screens/Cadastros/Abastecimento/AbastecimentoForm"
 
 // import { Agendamento } from "../screens/Cadastros/Agendamento";
 // import { AgendamentoForm } from "../screens/Cadastros/Agendamento/AgendamentoForm";
@@ -98,6 +99,11 @@ export function AppStack() {
         name="ResponsavelForm"
         component={ResponsavelForm}
         options={{ title: "Responsável", ...headerOptions }}
+      />
+       <Stack.Screen
+        name="AbastecimentoForm"
+        component={AbastecimentoForm}
+        options={{ title: "Abastecimento", ...headerOptions }}
       />
     </Stack.Navigator>
   );

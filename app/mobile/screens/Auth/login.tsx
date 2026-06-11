@@ -9,6 +9,7 @@ import { Form } from "../../components/Form/Form";
 import { useTheme } from "@/mobile/contexts/Theme/themeContext";
 import { useMensagem } from "../../hooks/Outros/useMensagem";
 import { useState } from "react";
+import { getApiBaseUrl } from "../../utils/getApiBaseUrl";
 // Importe o AsyncStorage se você realmente precisar salvar o token diretamente nesta tela.
 // Porém, o ideal é que isso aconteça dentro da função login() do seu useAuth.
 // import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -23,7 +24,7 @@ export default function LoginScreen() {
 
   async function handleLogin(data: any) {
     try {
-      const response = await fetch(`${process.env.EXPO_PUBLIC_URL}:${process.env.EXPO_PUBLIC_PORT}/api/auth/login`, {
+      const response = await fetch(`${getApiBaseUrl()}/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

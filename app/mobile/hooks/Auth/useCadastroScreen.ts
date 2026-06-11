@@ -15,6 +15,7 @@ import {
 } from "../../schemas/cadastro.schema";
 
 import { useAuth } from "../Auth/useAuth";
+import { getApiBaseUrl } from "../../utils/getApiBaseUrl";
 
 export function useCadastroScreen() {
   const showMessage = useMensagem();
@@ -127,9 +128,7 @@ export function useCadastroScreen() {
         mac_address: dispositivo.mac_address,
       });
 
-      const response = await fetch(
-        `${process.env.EXPO_PUBLIC_URL}:${process.env.EXPO_PUBLIC_PORT}/api/auth/cadastro`,
-        {
+      const response = await fetch(`${getApiBaseUrl()}/auth/cadastro`, {
           method: "POST",
 
           headers: {

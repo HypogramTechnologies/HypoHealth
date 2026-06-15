@@ -1,4 +1,5 @@
 import * as Notifications from "expo-notifications";
+import Constants from "expo-constants";
 import { Platform } from "react-native";
 
 export async function registerForPushNotificationsAsync(): Promise<
@@ -32,7 +33,20 @@ export async function registerForPushNotificationsAsync(): Promise<
   }
 
   try {
-    const expoPushToken = await Notifications.getExpoPushTokenAsync();
+    const projectId =
+      Constants.expoConfig?.extra?.eas?.projectId ??
+      Constants.easConfig?.projectId;
+      
+    if (!projectId) {
+      console.error(
+        "[registerForPushNotifications] projectId não encontrado na configuração do app.",
+      );
+      return null;
+    }
+
+    const expoPushToken = await Notifications.getExpoPushTokenAsync({
+      projectId,
+    });
     token = expoPushToken.data;
     console.log("Token de push notification obtido:", token);
   } catch (error) {

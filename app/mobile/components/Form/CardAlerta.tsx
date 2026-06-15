@@ -2,7 +2,7 @@ import dayjs from 'dayjs';
 import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/Theme/themeContext';
-import { formatarData } from '../../utils/formatar';
+import { formatarData, formatarHora } from '../../utils/formatar';
 import { AlertaItem } from '../../types/Outros/alerta';
 
 // 🔥 Tipo correto dos ícones
@@ -101,7 +101,7 @@ export function AlertaCard({
             marginTop: 2,
           }}
         >
-          {formatarData(item.dataHora)}
+          {`${formatarData(item.dataHora)} - ${formatarHora(item.dataHora)}`}
         </Text>
       </View>
 

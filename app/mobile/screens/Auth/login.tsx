@@ -45,7 +45,7 @@ export default function LoginScreen() {
       // await AsyncStorage.setItem('token', result.token);
 
       // 2. Envia os dados para o contexto global
-      login(result);
+      await login(result);
 
       // 3. Verificando os dispositivos (como solicitado no seu snippet)
 

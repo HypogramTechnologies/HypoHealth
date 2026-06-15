@@ -153,7 +153,7 @@ export function useCadastroScreen() {
         throw new Error(result.erro);
       }
 
-      login(result);
+      await login(result);
 
       showMessage("Cadastro realizado com sucesso", "success");
 
